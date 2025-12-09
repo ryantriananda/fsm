@@ -21,6 +21,7 @@ export interface DashboardMetrics {
 
 export interface Asset {
   id: string;
+  assetCode: string; // New unique identifier
   name: string;
   category: string;
   serialNumber: string;
@@ -96,8 +97,11 @@ export interface TimesheetEntry {
 export interface Vendor {
   id: string;
   name: string;
-  serviceType: 'Cleaning' | 'Security' | 'IT Support' | 'Supplier';
+  serviceType: 'Cleaning' | 'Security' | 'IT Support' | 'Supplier' | 'Maintenance' | 'Other';
   contactPerson: string;
+  phone?: string;
+  email?: string;
+  address?: string;
   rating: number; // 1-5
   status: 'Active' | 'Inactive';
 }

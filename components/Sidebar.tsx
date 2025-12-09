@@ -1,23 +1,17 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Search, 
   ChevronDown,
   ChevronRight,
   Pencil,
   ShoppingCart,
-  FileText,
   PieChart,
-  User,
   CreditCard,
   Home,
   BookOpen,
   BarChart,
-  Box,
-  Calendar,
-  MapPin,
-  Clipboard,
-  Wrench
+  Circle
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -28,14 +22,17 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ activeView, onNavigate }) => {
   const [isMasterAssetOpen, setIsMasterAssetOpen] = useState(false);
 
-  // Check if any sub-item of Master Asset is active
-  const isMasterAssetActive = [
-    'asset-control', 
-    'asset-calendar', 
-    'asset-tracking', 
-    'maintenance-request', 
-    'work-order'
-  ].includes(activeView);
+  // Auto-expand Master Asset if a child is active
+  useEffect(() => {
+    const masterAssetKeys = [
+      'asset-list', 'asset-category', 'asset-location', 'asset-status', 
+      'vendor', 'contract', 'asset-value', 'maintenance-schedule', 
+      'maintenance-type', 'sparepart', 'disposal', 'asset-docs', 'asset-role'
+    ];
+    if (masterAssetKeys.includes(activeView)) {
+      setIsMasterAssetOpen(true);
+    }
+  }, [activeView]);
 
   return (
     <aside className="w-64 bg-black h-screen fixed left-0 top-0 border-r border-gray-800 flex flex-col z-20 overflow-y-auto font-sans text-gray-300">
@@ -68,104 +65,79 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, onNavigate }) => {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-2 space-y-6 pb-10">
-        
-        {/* HR Core */}
-        <div>
-            <div className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2 px-3">HR Core</div>
-            <div className="space-y-1">
-                <NavItem icon={<FileText size={18} />} label="Contract" active={activeView === 'contract'} onClick={() => onNavigate('contract')} />
-                <NavItem icon={<PieChart size={18} />} label="Timesheet" active={activeView === 'timesheet'} onClick={() => onNavigate('timesheet')} />
+      <nav className="flex-1 px-2 space-y-1 pb-10">
+        <NavItem 
+          icon={<Pencil size={18} />} 
+          label="ATK" 
+          active={activeView === 'atk'} 
+          onClick={() => onNavigate('atk')} 
+        />
+        <NavItem 
+          icon={<ShoppingCart size={18} />} 
+          label="ARK" 
+          active={activeView === 'ark'} 
+          onClick={() => onNavigate('ark')} 
+        />
+        <NavItem 
+          icon={<PieChart size={18} />} 
+          label="Timesheet" 
+          active={activeView === 'timesheet'} 
+          onClick={() => onNavigate('timesheet')} 
+        />
+        <NavItem 
+          icon={<CreditCard size={18} />} 
+          label="Credit Card" 
+          active={activeView === 'credit-card'} 
+          onClick={() => onNavigate('credit-card')} 
+        />
+
+        {/* Master Asset Accordion */}
+        <div className="pt-2 pb-2">
+          <div 
+            onClick={() => setIsMasterAssetOpen(!isMasterAssetOpen)}
+            className={`flex items-center justify-between px-3 py-2.5 rounded-md cursor-pointer transition-all duration-200 border-l-4 border-transparent text-gray-400 hover:bg-gray-800 hover:text-white group`}
+          >
+            <div className="flex items-center gap-3">
+              <Home size={18} className="group-hover:text-white transition-colors"/>
+              <span className="text-sm font-medium">Master Asset</span>
             </div>
-        </div>
-
-        {/* HR - GA */}
-        <div>
-            <div className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2 px-3">HR — GA</div>
-             <div className="space-y-1">
-                <NavItem icon={<Pencil size={18} />} label="ATK" active={activeView === 'atk'} onClick={() => onNavigate('atk')}/>
-                <NavItem icon={<User size={18} />} label="Vendor" active={activeView === 'vendor'} onClick={() => onNavigate('vendor')} />
+            {isMasterAssetOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+          </div>
+          
+          {isMasterAssetOpen && (
+            <div className="mt-1 space-y-0.5 bg-gray-900/50 rounded-lg py-1">
+              <SubNavItem label="Daftar Asset" onClick={() => onNavigate('asset-list')} active={activeView === 'asset-list'} />
+              <SubNavItem label="Kategori Asset" onClick={() => onNavigate('asset-category')} active={activeView === 'asset-category'} />
+              <SubNavItem label="Lokasi Asset" onClick={() => onNavigate('asset-location')} active={activeView === 'asset-location'} />
+              <SubNavItem label="Status Asset" onClick={() => onNavigate('asset-status')} active={activeView === 'asset-status'} />
+              
+              {/* Added Vendor sub-menu item */}
+              <SubNavItem label="Vendor" onClick={() => onNavigate('vendor')} active={activeView === 'vendor'} />
+              
+              <SubNavItem label="Kontrak Asset" onClick={() => onNavigate('contract')} active={activeView === 'contract'} />
+              <SubNavItem label="Nilai & Penyusutan" onClick={() => onNavigate('asset-value')} active={activeView === 'asset-value'} />
+              <SubNavItem label="Jadwal Maintenance" onClick={() => onNavigate('maintenance-schedule')} active={activeView === 'maintenance-schedule'} />
+              <SubNavItem label="Jenis Maintenance" onClick={() => onNavigate('maintenance-type')} active={activeView === 'maintenance-type'} />
+              <SubNavItem label="Sparepart" onClick={() => onNavigate('sparepart')} active={activeView === 'sparepart'} />
+              <SubNavItem label="Disposal & Mutasi" onClick={() => onNavigate('disposal')} active={activeView === 'disposal'} />
+              <SubNavItem label="Dokumen Asset" onClick={() => onNavigate('asset-docs')} active={activeView === 'asset-docs'} />
+              <SubNavItem label="Role & PIC" onClick={() => onNavigate('asset-role')} active={activeView === 'asset-role'} />
             </div>
+          )}
         </div>
 
-        {/* Finance Support */}
-        <div>
-             <div className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2 px-3">Finance Support</div>
-             <div className="space-y-1">
-                <NavItem icon={<CreditCard size={18} />} label="Credit Card" active={activeView === 'credit-card'} onClick={() => onNavigate('credit-card')} />
-             </div>
-        </div>
-
-        {/* Facility / Asset */}
-        <div>
-            <div className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2 px-3">Facility / Asset</div>
-            <div className="space-y-1">
-                 {/* Master Asset Accordion */}
-                <div>
-                    <button 
-                        onClick={() => setIsMasterAssetOpen(!isMasterAssetOpen)}
-                        className={`flex items-center justify-between w-full px-3 py-2.5 rounded-md cursor-pointer transition-colors border-l-4 ${
-                        isMasterAssetActive 
-                            ? 'bg-gray-800 text-white font-medium border-white' 
-                            : 'border-transparent text-gray-400 hover:bg-gray-800 hover:text-white'
-                        }`}
-                    >
-                        <div className="flex items-center gap-3">
-                            <Home size={18} />
-                            <span className="text-sm">Master Asset</span>
-                        </div>
-                        {isMasterAssetOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                    </button>
-
-                    {isMasterAssetOpen && (
-                        <div className="pl-4 space-y-1 mt-1 mb-2 bg-gray-900/50 py-2 rounded-lg">
-                            <SubNavItem 
-                                icon={<Box size={16} />}
-                                label="Asset Control" 
-                                active={activeView === 'asset-control'} 
-                                onClick={() => onNavigate('asset-control')} 
-                            />
-                            <SubNavItem 
-                                icon={<Calendar size={16} />}
-                                label="Asset Calendar" 
-                                active={activeView === 'asset-calendar'} 
-                                onClick={() => onNavigate('asset-calendar')} 
-                            />
-                            <SubNavItem 
-                                icon={<MapPin size={16} />}
-                                label="Asset Tracking" 
-                                active={activeView === 'asset-tracking'} 
-                                onClick={() => onNavigate('asset-tracking')} 
-                            />
-                            <SubNavItem 
-                                icon={<Clipboard size={16} />}
-                                label="Maintenance Request" 
-                                active={activeView === 'maintenance-request'} 
-                                onClick={() => onNavigate('maintenance-request')} 
-                            />
-                            <SubNavItem 
-                                icon={<Wrench size={16} />}
-                                label="Work Order" 
-                                active={activeView === 'work-order'} 
-                                onClick={() => onNavigate('work-order')} 
-                            />
-                        </div>
-                    )}
-                </div>
-
-                <NavItem icon={<BookOpen size={18} />} label="Log Book" active={activeView === 'log-book'} onClick={() => onNavigate('log-book')} />
-                <NavItem icon={<ShoppingCart size={18} />} label="ARK" active={activeView === 'ark'} onClick={() => onNavigate('ark')} />
-            </div>
-        </div>
-
-        {/* Operation */}
-        <div>
-            <div className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2 px-3">Operation</div>
-            <div className="space-y-1">
-                <NavItem icon={<BarChart size={18} />} label="Project Management" active={activeView === 'project-management'} onClick={() => onNavigate('project-management')} />
-            </div>
-        </div>
-
+        <NavItem 
+          icon={<BookOpen size={18} />} 
+          label="Log Book" 
+          active={activeView === 'log-book'} 
+          onClick={() => onNavigate('log-book')} 
+        />
+        <NavItem 
+          icon={<BarChart size={18} />} 
+          label="Project Management" 
+          active={activeView === 'project-management'} 
+          onClick={() => onNavigate('project-management')} 
+        />
       </nav>
     </aside>
   );
@@ -183,7 +155,7 @@ const NavItem: React.FC<NavItemProps> = ({ icon, label, active, onClick }) => {
     <div 
         onClick={onClick}
         className={`
-      flex items-center justify-between px-3 py-2.5 rounded-md cursor-pointer transition-all duration-200 border-l-4
+      flex items-center justify-between px-3 py-2.5 rounded-md cursor-pointer transition-all duration-200 border-l-4 mb-1
       ${active 
         ? 'bg-gray-800 text-white font-medium border-white shadow-md' 
         : 'border-transparent text-gray-400 hover:bg-gray-800 hover:text-white hover:pl-4'}
@@ -197,25 +169,24 @@ const NavItem: React.FC<NavItemProps> = ({ icon, label, active, onClick }) => {
 };
 
 interface SubNavItemProps {
-    label: string;
-    active?: boolean;
-    onClick?: () => void;
-    icon?: React.ReactNode;
+  label: string;
+  active?: boolean;
+  onClick?: () => void;
 }
 
-const SubNavItem: React.FC<SubNavItemProps> = ({ label, active, onClick, icon }) => {
-    return (
-        <div 
-            onClick={onClick}
-            className={`
-            flex items-center gap-2 px-3 py-2 mx-2 rounded-md cursor-pointer transition-colors text-sm
-            ${active ? 'text-white font-medium bg-gray-800' : 'text-gray-500 hover:text-white hover:bg-gray-800'}
-            `}
-        >
-            {icon}
-            <span>{label}</span>
-        </div>
-    );
-}
+const SubNavItem: React.FC<SubNavItemProps> = ({ label, active, onClick }) => {
+  return (
+    <div 
+      onClick={onClick}
+      className={`
+        flex items-center gap-3 px-3 py-2 cursor-pointer transition-colors pl-11 text-sm
+        ${active ? 'text-white font-medium bg-gray-800' : 'text-gray-500 hover:text-gray-300 hover:bg-gray-800/30'}
+      `}
+    >
+      <div className={`w-1.5 h-1.5 rounded-full ${active ? 'bg-white' : 'bg-gray-600'}`}></div>
+      <span>{label}</span>
+    </div>
+  );
+};
 
 export default Sidebar;

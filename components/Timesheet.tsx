@@ -18,15 +18,15 @@ const Timesheet: React.FC = () => {
   const [formData, setFormData] = useState({
     employeeName: '',
     date: new Date().toISOString().split('T')[0],
-    project: '', // Acts as Zone/Area for cleaning
-    task: '',    // Acts as Activity for cleaning
+    project: '', // Acts as Zone/Area
+    task: '',    // Acts as Activity
     hours: 8 as number | string
   });
 
   // Stats calculation
   const totalHours = cleaningLogs.reduce((acc, curr) => acc + curr.hours, 0);
   const pendingCount = cleaningLogs.filter(d => d.status === 'Submitted').length;
-  const areaCoverage = '100%'; 
+  const coverageMetric = '100% Area'; 
 
   const handleOpenModal = () => {
     setFormData({
@@ -98,7 +98,7 @@ const Timesheet: React.FC = () => {
                 <p className="text-gray-500 text-sm font-medium">
                   Area Coverage
                 </p>
-                <p className="text-3xl font-bold text-gray-900 mt-1">{areaCoverage}</p>
+                <p className="text-3xl font-bold text-gray-900 mt-1">{coverageMetric}</p>
             </div>
             <div className="p-3 bg-emerald-50 text-emerald-600 rounded-lg">
                 <MapPin size={24} />
@@ -114,14 +114,14 @@ const Timesheet: React.FC = () => {
             </h3>
             <span className="text-xs font-medium px-2 py-1 bg-blue-50 text-blue-700 rounded-md border border-blue-100 flex items-center gap-1">
                 <Sparkles size={12} />
-                Cleaning Department
+                Cleaning Dept
             </span>
         </div>
         <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-white">
                 <tr>
-                <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Cleaner Name</th>
+                <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Employee</th>
                 <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Date</th>
                 <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">
                     Zone / Area
@@ -138,7 +138,7 @@ const Timesheet: React.FC = () => {
                 <tr key={entry.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4">
                     <div className="text-sm font-medium text-gray-900">{entry.employeeName}</div>
-                    <div className="text-xs text-gray-400">Staff ID: {entry.id}</div>
+                    <div className="text-xs text-gray-400">ID: {entry.id}</div>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500">{entry.date}</td>
                     <td className="px-6 py-4 text-sm text-gray-600">
@@ -178,7 +178,7 @@ const Timesheet: React.FC = () => {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Cleaner Name
+                    Employee Name
                   </label>
                   <input 
                     required
@@ -186,7 +186,7 @@ const Timesheet: React.FC = () => {
                     value={formData.employeeName}
                     onChange={(e) => setFormData({...formData, employeeName: e.target.value})}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 outline-none"
-                    placeholder="e.g., John Doe"
+                    placeholder="e.g., Budi Santoso"
                   />
                 </div>
                 
