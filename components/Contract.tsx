@@ -10,7 +10,7 @@ const initialContracts: Contract[] = [
   { id: 'C004', title: 'Senior Manager', partyName: 'Robert Stark', type: 'PKWTT', startDate: '2020-01-01', endDate: '-', status: 'Active', value: 0 },
 ];
 
-const Contract: React.FC = () => {
+const ContractComponent: React.FC = () => {
   const [contracts] = useState<Contract[]>(initialContracts);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -113,4 +113,4 @@ const Contract: React.FC = () => {
   );
 };
 
-export default Contract;
+export default ContractComponent;
