@@ -32,22 +32,137 @@ export interface Asset {
 }
 
 // ATK Types
-export interface ATKItem {
-  id: string;
+export interface ATKCategory {
+  id: number;
+  code: string;
   name: string;
-  stock: number;
+  description?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ATKItem {
+  id: number;
+  code: string;
+  name: string;
+  category_id: number;
+  category_name?: string;
   unit: string;
-  category: string;
-  minStock: number;
+  unit_price: number;
+  stock: number;
+  min_stock: number;
+  max_stock: number;
+  supplier_id?: number;
+  supplier_name?: string;
+  location?: string;
+  description?: string;
+  is_active: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ATKStockTransaction {
+  id: number;
+  item_id: number;
+  item_name?: string;
+  transaction_type: 'IN' | 'OUT' | 'ADJUSTMENT' | 'OPNAME';
+  quantity: number;
+  previous_stock: number;
+  new_stock: number;
+  reference_type?: string;
+  reference_id?: number;
+  notes?: string;
+  created_by?: string;
+  created_at?: string;
 }
 
 export interface ATKRequest {
-  id: string;
-  employeeName: string;
-  division: string;
-  date: string;
-  items: { itemId: string; itemName: string; quantity: number }[];
-  status: 'Pending' | 'Approved' | 'Rejected';
+  id: number;
+  request_number: string;
+  employee_id?: number;
+  employee_name: string;
+  department: string;
+  request_date: string;
+  needed_date?: string;
+  purpose?: string;
+  status: 'Draft' | 'Submitted' | 'Approved' | 'Rejected' | 'Partial' | 'Completed' | 'Cancelled';
+  approved_by?: string;
+  approved_date?: string;
+  rejection_reason?: string;
+  notes?: string;
+  items: ATKRequestItem[];
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ATKRequestItem {
+  id?: number;
+  request_id?: number;
+  item_id: number;
+  item_name?: string;
+  item_code?: string;
+  unit?: string;
+  quantity_requested: number;
+  quantity_approved: number;
+  quantity_issued: number;
+  status: 'Pending' | 'Approved' | 'Rejected' | 'Partial' | 'Issued';
+  notes?: string;
+  available_stock?: number;
+}
+
+export interface ATKPurchaseOrder {
+  id: number;
+  po_number: string;
+  supplier_id: number;
+  supplier_name?: string;
+  order_date: string;
+  expected_date?: string;
+  received_date?: string;
+  status: 'Draft' | 'Submitted' | 'Approved' | 'Ordered' | 'Partial' | 'Received' | 'Cancelled';
+  total_amount: number;
+  approved_by?: string;
+  notes?: string;
+  items: ATKPurchaseOrderItem[];
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ATKPurchaseOrderItem {
+  id?: number;
+  po_id?: number;
+  item_id: number;
+  item_name?: string;
+  item_code?: string;
+  quantity_ordered: number;
+  quantity_received: number;
+  unit_price: number;
+  total_price: number;
+  status: 'Pending' | 'Partial' | 'Received';
+}
+
+export interface ATKStockOpname {
+  id: number;
+  opname_number: string;
+  opname_date: string;
+  status: 'Draft' | 'In Progress' | 'Completed' | 'Approved';
+  conducted_by?: string;
+  approved_by?: string;
+  notes?: string;
+  items: ATKStockOpnameItem[];
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ATKStockOpnameItem {
+  id?: number;
+  opname_id?: number;
+  item_id: number;
+  item_name?: string;
+  item_code?: string;
+  system_stock: number;
+  actual_stock: number;
+  difference: number;
+  notes?: string;
 }
 
 // ARK (Aset Ruang Kerja) Types

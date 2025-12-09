@@ -367,3 +367,125 @@ export const assetRoleAPI = {
     return res.json() as Promise<ApiResponse<any>>;
   },
 };
+
+// ATK Categories
+export const atkCategoryAPI = {
+  getAll: async () => {
+    const res = await fetch(`${API_BASE_URL}/atk-categories`);
+    return res.json() as Promise<ApiResponse<any[]>>;
+  },
+  create: async (data: any) => {
+    const res = await fetch(`${API_BASE_URL}/atk-categories`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    return res.json() as Promise<ApiResponse<any>>;
+  },
+  update: async (id: number, data: any) => {
+    const res = await fetch(`${API_BASE_URL}/atk-categories/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    return res.json() as Promise<ApiResponse<any>>;
+  },
+  delete: async (id: number) => {
+    const res = await fetch(`${API_BASE_URL}/atk-categories/${id}`, {
+      method: 'DELETE',
+    });
+    return res.json() as Promise<ApiResponse<any>>;
+  },
+};
+
+// ATK Items
+export const atkItemAPI = {
+  getAll: async () => {
+    const res = await fetch(`${API_BASE_URL}/atk-items`);
+    return res.json() as Promise<ApiResponse<any[]>>;
+  },
+  create: async (data: any) => {
+    const res = await fetch(`${API_BASE_URL}/atk-items`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    return res.json() as Promise<ApiResponse<any>>;
+  },
+  update: async (id: number, data: any) => {
+    const res = await fetch(`${API_BASE_URL}/atk-items/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    return res.json() as Promise<ApiResponse<any>>;
+  },
+  delete: async (id: number) => {
+    const res = await fetch(`${API_BASE_URL}/atk-items/${id}`, {
+      method: 'DELETE',
+    });
+    return res.json() as Promise<ApiResponse<any>>;
+  },
+};
+
+// ATK Stock Transactions
+export const atkTransactionAPI = {
+  getAll: async () => {
+    const res = await fetch(`${API_BASE_URL}/atk-transactions`);
+    return res.json() as Promise<ApiResponse<any[]>>;
+  },
+  create: async (data: any) => {
+    const res = await fetch(`${API_BASE_URL}/atk-transactions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    return res.json() as Promise<ApiResponse<any>>;
+  },
+};
+
+// ATK Requests
+export const atkRequestAPI = {
+  getAll: async () => {
+    const res = await fetch(`${API_BASE_URL}/atk-requests`);
+    return res.json() as Promise<ApiResponse<any[]>>;
+  },
+  create: async (data: any) => {
+    const res = await fetch(`${API_BASE_URL}/atk-requests`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    return res.json() as Promise<ApiResponse<any>>;
+  },
+  update: async (id: number, data: any) => {
+    const res = await fetch(`${API_BASE_URL}/atk-requests/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    return res.json() as Promise<ApiResponse<any>>;
+  },
+  delete: async (id: number) => {
+    const res = await fetch(`${API_BASE_URL}/atk-requests/${id}`, {
+      method: 'DELETE',
+    });
+    return res.json() as Promise<ApiResponse<any>>;
+  },
+  approve: async (id: number, data: any) => {
+    const res = await fetch(`${API_BASE_URL}/atk-requests/${id}/approve`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    return res.json() as Promise<ApiResponse<any>>;
+  },
+  reject: async (id: number, data: any) => {
+    const res = await fetch(`${API_BASE_URL}/atk-requests/${id}/reject`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    return res.json() as Promise<ApiResponse<any>>;
+  },
+};

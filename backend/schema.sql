@@ -82,18 +82,134 @@ CREATE TABLE IF NOT EXISTS contracts (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- ATK (Alat Tulis Kantor)
-CREATE TABLE IF NOT EXISTS atk (
+-- ATK Categories
+CREATE TABLE IF NOT EXISTS atk_categories (
     id SERIAL PRIMARY KEY,
     code VARCHAR(50) UNIQUE NOT NULL,
     name VARCHAR(255) NOT NULL,
-    category VARCHAR(100),
-    quantity INT,
-    unit VARCHAR(50),
-    unit_price DECIMAL(10,2),
-    supplier_id INT REFERENCES vendors(id),
+    description TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ATK Items (Master Data)
+CREATE TABLE IF NOT EXISTS atk_items (
+    id SERIAL PRIMARY KEY,
+    code VARCHAR(50) UNIQUE NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    category_id INT REFERENCES atk_categories(id),
+    unit VARCHAR(50) NOT NULL,
+    unit_price DECIMAL(10,2) DEFAULT 0,
+    stock INT DEFAULT 0,
+    min_stock INT DEFAULT 5,
+    max_stock INT DEFAULT 100,
+    supplier_id INT REFERENCES vendors(id),
+    location VARCHAR(255),
+    description TEXT,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ATK Stock Transactions (In/Out)
+CREATE TABLE IF NOT EXISTS atk_stock_transactions (
+    id SERIAL PRIMARY KEY,
+    item_id INT REFERENCES atk_items(id),
+    transaction_type VARCHAR(20) NOT NULL, -- 'IN', 'OUT', 'ADJUSTMENT', 'OPNAME'
+    quantity INT NOT NULL,
+    previous_stock INT,
+    new_stock INT,
+    reference_type VARCHAR(50), -- 'PURCHASE', 'REQUEST', 'RETURN', 'OPNAME'
+    reference_id INT,
+    notes TEXT,
+    created_by VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ATK Requests
+CREATE TABLE IF NOT EXISTS atk_requests (
+    id SERIAL PRIMARY KEY,
+    request_number VARCHAR(50) UNIQUE NOT NULL,
+    employee_id INT,
+    employee_name VARCHAR(255) NOT NULL,
+    department VARCHAR(100),
+    request_date DATE DEFAULT CURRENT_DATE,
+    needed_date DATE,
+    purpose TEXT,
+    status VARCHAR(20) DEFAULT 'Draft', -- 'Draft', 'Submitted', 'Approved', 'Rejected', 'Partial', 'Completed', 'Cancelled'
+    approved_by VARCHAR(255),
+    approved_date TIMESTAMP,
+    rejection_reason TEXT,
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ATK Request Items
+CREATE TABLE IF NOT EXISTS atk_request_items (
+    id SERIAL PRIMARY KEY,
+    request_id INT REFERENCES atk_requests(id) ON DELETE CASCADE,
+    item_id INT REFERENCES atk_items(id),
+    quantity_requested INT NOT NULL,
+    quantity_approved INT DEFAULT 0,
+    quantity_issued INT DEFAULT 0,
+    status VARCHAR(20) DEFAULT 'Pending', -- 'Pending', 'Approved', 'Rejected', 'Partial', 'Issued'
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ATK Purchase Orders
+CREATE TABLE IF NOT EXISTS atk_purchase_orders (
+    id SERIAL PRIMARY KEY,
+    po_number VARCHAR(50) UNIQUE NOT NULL,
+    supplier_id INT REFERENCES vendors(id),
+    order_date DATE DEFAULT CURRENT_DATE,
+    expected_date DATE,
+    received_date DATE,
+    status VARCHAR(20) DEFAULT 'Draft', -- 'Draft', 'Submitted', 'Approved', 'Ordered', 'Partial', 'Received', 'Cancelled'
+    total_amount DECIMAL(15,2) DEFAULT 0,
+    approved_by VARCHAR(255),
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ATK Purchase Order Items
+CREATE TABLE IF NOT EXISTS atk_purchase_order_items (
+    id SERIAL PRIMARY KEY,
+    po_id INT REFERENCES atk_purchase_orders(id) ON DELETE CASCADE,
+    item_id INT REFERENCES atk_items(id),
+    quantity_ordered INT NOT NULL,
+    quantity_received INT DEFAULT 0,
+    unit_price DECIMAL(10,2),
+    total_price DECIMAL(15,2),
+    status VARCHAR(20) DEFAULT 'Pending', -- 'Pending', 'Partial', 'Received'
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ATK Stock Opname
+CREATE TABLE IF NOT EXISTS atk_stock_opname (
+    id SERIAL PRIMARY KEY,
+    opname_number VARCHAR(50) UNIQUE NOT NULL,
+    opname_date DATE DEFAULT CURRENT_DATE,
+    status VARCHAR(20) DEFAULT 'Draft', -- 'Draft', 'In Progress', 'Completed', 'Approved'
+    conducted_by VARCHAR(255),
+    approved_by VARCHAR(255),
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ATK Stock Opname Items
+CREATE TABLE IF NOT EXISTS atk_stock_opname_items (
+    id SERIAL PRIMARY KEY,
+    opname_id INT REFERENCES atk_stock_opname(id) ON DELETE CASCADE,
+    item_id INT REFERENCES atk_items(id),
+    system_stock INT,
+    actual_stock INT,
+    difference INT,
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- ARK (Alat Rumah Tangga Kantor)

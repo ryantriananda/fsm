@@ -282,6 +282,30 @@ func main() {
 	router.HandleFunc("/api/asset-roles/{id}", updateAssetRole).Methods("PUT")
 	router.HandleFunc("/api/asset-roles/{id}", deleteAssetRole).Methods("DELETE")
 
+	// ATK Categories
+	router.HandleFunc("/api/atk-categories", getATKCategories).Methods("GET")
+	router.HandleFunc("/api/atk-categories", createATKCategory).Methods("POST")
+	router.HandleFunc("/api/atk-categories/{id}", updateATKCategory).Methods("PUT")
+	router.HandleFunc("/api/atk-categories/{id}", deleteATKCategory).Methods("DELETE")
+
+	// ATK Items
+	router.HandleFunc("/api/atk-items", getATKItems).Methods("GET")
+	router.HandleFunc("/api/atk-items", createATKItem).Methods("POST")
+	router.HandleFunc("/api/atk-items/{id}", updateATKItem).Methods("PUT")
+	router.HandleFunc("/api/atk-items/{id}", deleteATKItem).Methods("DELETE")
+
+	// ATK Stock Transactions
+	router.HandleFunc("/api/atk-transactions", getATKTransactions).Methods("GET")
+	router.HandleFunc("/api/atk-transactions", createATKTransaction).Methods("POST")
+
+	// ATK Requests
+	router.HandleFunc("/api/atk-requests", getATKRequests).Methods("GET")
+	router.HandleFunc("/api/atk-requests", createATKRequest).Methods("POST")
+	router.HandleFunc("/api/atk-requests/{id}", updateATKRequest).Methods("PUT")
+	router.HandleFunc("/api/atk-requests/{id}", deleteATKRequest).Methods("DELETE")
+	router.HandleFunc("/api/atk-requests/{id}/approve", approveATKRequest).Methods("POST")
+	router.HandleFunc("/api/atk-requests/{id}/reject", rejectATKRequest).Methods("POST")
+
 	fmt.Println("Server running on http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
@@ -1175,6 +1199,548 @@ func updateAssetRole(w http.ResponseWriter, r *http.Request) {
 func deleteAssetRole(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
 	_, err := db.Exec("DELETE FROM asset_roles WHERE id=$1", id)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	respondSuccess(w, map[string]string{"message": "Deleted successfully"})
+}
+
+// ATK Category
+type ATKCategory struct {
+	ID          int       `json:"id"`
+	Code        string    `json:"code"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+}
+
+// ATK Item
+type ATKItem struct {
+	ID           int       `json:"id"`
+	Code         string    `json:"code"`
+	Name         string    `json:"name"`
+	CategoryID   int       `json:"category_id"`
+	CategoryName string    `json:"category_name,omitempty"`
+	Unit         string    `json:"unit"`
+	UnitPrice    float64   `json:"unit_price"`
+	Stock        int       `json:"stock"`
+	MinStock     int       `json:"min_stock"`
+	MaxStock     int       `json:"max_stock"`
+	SupplierID   int       `json:"supplier_id"`
+	Location     string    `json:"location"`
+	Description  string    `json:"description"`
+	IsActive     bool      `json:"is_active"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+}
+
+// ATK Stock Transaction
+type ATKStockTransaction struct {
+	ID              int       `json:"id"`
+	ItemID          int       `json:"item_id"`
+	ItemName        string    `json:"item_name,omitempty"`
+	TransactionType string    `json:"transaction_type"`
+	Quantity        int       `json:"quantity"`
+	PreviousStock   int       `json:"previous_stock"`
+	NewStock        int       `json:"new_stock"`
+	ReferenceType   string    `json:"reference_type"`
+	ReferenceID     int       `json:"reference_id"`
+	Notes           string    `json:"notes"`
+	CreatedBy       string    `json:"created_by"`
+	CreatedAt       time.Time `json:"created_at"`
+}
+
+// ATK Request
+type ATKRequest struct {
+	ID              int              `json:"id"`
+	RequestNumber   string           `json:"request_number"`
+	EmployeeID      int              `json:"employee_id"`
+	EmployeeName    string           `json:"employee_name"`
+	Department      string           `json:"department"`
+	RequestDate     string           `json:"request_date"`
+	NeededDate      string           `json:"needed_date"`
+	Purpose         string           `json:"purpose"`
+	Status          string           `json:"status"`
+	ApprovedBy      string           `json:"approved_by"`
+	ApprovedDate    string           `json:"approved_date"`
+	RejectionReason string           `json:"rejection_reason"`
+	Notes           string           `json:"notes"`
+	Items           []ATKRequestItem `json:"items,omitempty"`
+	CreatedAt       time.Time        `json:"created_at"`
+	UpdatedAt       time.Time        `json:"updated_at"`
+}
+
+// ATK Request Item
+type ATKRequestItem struct {
+	ID                int    `json:"id"`
+	RequestID         int    `json:"request_id"`
+	ItemID            int    `json:"item_id"`
+	ItemName          string `json:"item_name,omitempty"`
+	ItemCode          string `json:"item_code,omitempty"`
+	Unit              string `json:"unit,omitempty"`
+	QuantityRequested int    `json:"quantity_requested"`
+	QuantityApproved  int    `json:"quantity_approved"`
+	QuantityIssued    int    `json:"quantity_issued"`
+	Status            string `json:"status"`
+	Notes             string `json:"notes"`
+}
+
+// ATK Categories Handlers
+func getATKCategories(w http.ResponseWriter, r *http.Request) {
+	rows, err := db.Query("SELECT id, code, name, COALESCE(description, ''), created_at, updated_at FROM atk_categories ORDER BY name")
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer rows.Close()
+
+	var categories []ATKCategory
+	for rows.Next() {
+		var cat ATKCategory
+		if err := rows.Scan(&cat.ID, &cat.Code, &cat.Name, &cat.Description, &cat.CreatedAt, &cat.UpdatedAt); err != nil {
+			respondError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		categories = append(categories, cat)
+	}
+	respondSuccess(w, categories)
+}
+
+func createATKCategory(w http.ResponseWriter, r *http.Request) {
+	var cat ATKCategory
+	if err := json.NewDecoder(r.Body).Decode(&cat); err != nil {
+		respondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err := db.QueryRow(
+		"INSERT INTO atk_categories (code, name, description) VALUES ($1, $2, $3) RETURNING id, created_at, updated_at",
+		cat.Code, cat.Name, cat.Description,
+	).Scan(&cat.ID, &cat.CreatedAt, &cat.UpdatedAt)
+
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	respondSuccess(w, cat)
+}
+
+func updateATKCategory(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+	var cat ATKCategory
+	if err := json.NewDecoder(r.Body).Decode(&cat); err != nil {
+		respondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	_, err := db.Exec(
+		"UPDATE atk_categories SET code=$1, name=$2, description=$3, updated_at=CURRENT_TIMESTAMP WHERE id=$4",
+		cat.Code, cat.Name, cat.Description, id,
+	)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	respondSuccess(w, map[string]string{"message": "Updated successfully"})
+}
+
+func deleteATKCategory(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+	_, err := db.Exec("DELETE FROM atk_categories WHERE id=$1", id)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	respondSuccess(w, map[string]string{"message": "Deleted successfully"})
+}
+
+// ATK Items Handlers
+func getATKItems(w http.ResponseWriter, r *http.Request) {
+	rows, err := db.Query(`
+		SELECT i.id, i.code, i.name, i.category_id, COALESCE(c.name, ''), i.unit, i.unit_price, 
+		       i.stock, i.min_stock, i.max_stock, COALESCE(i.supplier_id, 0), COALESCE(i.location, ''), 
+		       COALESCE(i.description, ''), i.is_active, i.created_at, i.updated_at 
+		FROM atk_items i 
+		LEFT JOIN atk_categories c ON i.category_id = c.id 
+		ORDER BY i.name`)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer rows.Close()
+
+	var items []ATKItem
+	for rows.Next() {
+		var item ATKItem
+		if err := rows.Scan(&item.ID, &item.Code, &item.Name, &item.CategoryID, &item.CategoryName, 
+			&item.Unit, &item.UnitPrice, &item.Stock, &item.MinStock, &item.MaxStock, 
+			&item.SupplierID, &item.Location, &item.Description, &item.IsActive, 
+			&item.CreatedAt, &item.UpdatedAt); err != nil {
+			respondError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		items = append(items, item)
+	}
+	respondSuccess(w, items)
+}
+
+func createATKItem(w http.ResponseWriter, r *http.Request) {
+	var item ATKItem
+	if err := json.NewDecoder(r.Body).Decode(&item); err != nil {
+		respondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err := db.QueryRow(
+		`INSERT INTO atk_items (code, name, category_id, unit, unit_price, stock, min_stock, max_stock, supplier_id, location, description, is_active) 
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id, created_at, updated_at`,
+		item.Code, item.Name, item.CategoryID, item.Unit, item.UnitPrice, item.Stock, item.MinStock, item.MaxStock, 
+		item.SupplierID, item.Location, item.Description, item.IsActive,
+	).Scan(&item.ID, &item.CreatedAt, &item.UpdatedAt)
+
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	respondSuccess(w, item)
+}
+
+func updateATKItem(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+	var item ATKItem
+	if err := json.NewDecoder(r.Body).Decode(&item); err != nil {
+		respondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	_, err := db.Exec(
+		`UPDATE atk_items SET code=$1, name=$2, category_id=$3, unit=$4, unit_price=$5, stock=$6, 
+		 min_stock=$7, max_stock=$8, supplier_id=$9, location=$10, description=$11, is_active=$12, 
+		 updated_at=CURRENT_TIMESTAMP WHERE id=$13`,
+		item.Code, item.Name, item.CategoryID, item.Unit, item.UnitPrice, item.Stock, 
+		item.MinStock, item.MaxStock, item.SupplierID, item.Location, item.Description, item.IsActive, id,
+	)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	respondSuccess(w, map[string]string{"message": "Updated successfully"})
+}
+
+func deleteATKItem(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+	_, err := db.Exec("DELETE FROM atk_items WHERE id=$1", id)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	respondSuccess(w, map[string]string{"message": "Deleted successfully"})
+}
+
+// ATK Stock Transaction Handlers
+func getATKTransactions(w http.ResponseWriter, r *http.Request) {
+	rows, err := db.Query(`
+		SELECT t.id, t.item_id, COALESCE(i.name, ''), t.transaction_type, t.quantity, 
+		       t.previous_stock, t.new_stock, COALESCE(t.reference_type, ''), COALESCE(t.reference_id, 0), 
+		       COALESCE(t.notes, ''), COALESCE(t.created_by, ''), t.created_at 
+		FROM atk_stock_transactions t 
+		LEFT JOIN atk_items i ON t.item_id = i.id 
+		ORDER BY t.created_at DESC`)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer rows.Close()
+
+	var transactions []ATKStockTransaction
+	for rows.Next() {
+		var tx ATKStockTransaction
+		if err := rows.Scan(&tx.ID, &tx.ItemID, &tx.ItemName, &tx.TransactionType, &tx.Quantity, 
+			&tx.PreviousStock, &tx.NewStock, &tx.ReferenceType, &tx.ReferenceID, 
+			&tx.Notes, &tx.CreatedBy, &tx.CreatedAt); err != nil {
+			respondError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		transactions = append(transactions, tx)
+	}
+	respondSuccess(w, transactions)
+}
+
+func createATKTransaction(w http.ResponseWriter, r *http.Request) {
+	var tx ATKStockTransaction
+	if err := json.NewDecoder(r.Body).Decode(&tx); err != nil {
+		respondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// Get current stock
+	var currentStock int
+	err := db.QueryRow("SELECT stock FROM atk_items WHERE id=$1", tx.ItemID).Scan(&currentStock)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, "Item not found")
+		return
+	}
+
+	tx.PreviousStock = currentStock
+	if tx.TransactionType == "IN" {
+		tx.NewStock = currentStock + tx.Quantity
+	} else if tx.TransactionType == "OUT" {
+		tx.NewStock = currentStock - tx.Quantity
+	} else {
+		tx.NewStock = tx.Quantity // For ADJUSTMENT/OPNAME
+	}
+
+	// Start transaction
+	dbTx, err := db.Begin()
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	// Update stock
+	_, err = dbTx.Exec("UPDATE atk_items SET stock=$1, updated_at=CURRENT_TIMESTAMP WHERE id=$2", tx.NewStock, tx.ItemID)
+	if err != nil {
+		dbTx.Rollback()
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	// Insert transaction
+	err = dbTx.QueryRow(
+		`INSERT INTO atk_stock_transactions (item_id, transaction_type, quantity, previous_stock, new_stock, reference_type, reference_id, notes, created_by) 
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id, created_at`,
+		tx.ItemID, tx.TransactionType, tx.Quantity, tx.PreviousStock, tx.NewStock, tx.ReferenceType, tx.ReferenceID, tx.Notes, tx.CreatedBy,
+	).Scan(&tx.ID, &tx.CreatedAt)
+
+	if err != nil {
+		dbTx.Rollback()
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	dbTx.Commit()
+	respondSuccess(w, tx)
+}
+
+// ATK Request Handlers
+func getATKRequests(w http.ResponseWriter, r *http.Request) {
+	rows, err := db.Query(`
+		SELECT id, request_number, COALESCE(employee_id, 0), employee_name, COALESCE(department, ''), 
+		       request_date, COALESCE(needed_date, '1970-01-01'), COALESCE(purpose, ''), status, 
+		       COALESCE(approved_by, ''), COALESCE(approved_date, '1970-01-01'), COALESCE(rejection_reason, ''), 
+		       COALESCE(notes, ''), created_at, updated_at 
+		FROM atk_requests ORDER BY created_at DESC`)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer rows.Close()
+
+	var requests []ATKRequest
+	for rows.Next() {
+		var req ATKRequest
+		if err := rows.Scan(&req.ID, &req.RequestNumber, &req.EmployeeID, &req.EmployeeName, &req.Department, 
+			&req.RequestDate, &req.NeededDate, &req.Purpose, &req.Status, &req.ApprovedBy, 
+			&req.ApprovedDate, &req.RejectionReason, &req.Notes, &req.CreatedAt, &req.UpdatedAt); err != nil {
+			respondError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		
+		// Get request items
+		itemRows, err := db.Query(`
+			SELECT ri.id, ri.request_id, ri.item_id, COALESCE(i.name, ''), COALESCE(i.code, ''), COALESCE(i.unit, ''),
+			       ri.quantity_requested, ri.quantity_approved, ri.quantity_issued, ri.status, COALESCE(ri.notes, '')
+			FROM atk_request_items ri
+			LEFT JOIN atk_items i ON ri.item_id = i.id
+			WHERE ri.request_id = $1`, req.ID)
+		if err == nil {
+			defer itemRows.Close()
+			for itemRows.Next() {
+				var item ATKRequestItem
+				itemRows.Scan(&item.ID, &item.RequestID, &item.ItemID, &item.ItemName, &item.ItemCode, &item.Unit,
+					&item.QuantityRequested, &item.QuantityApproved, &item.QuantityIssued, &item.Status, &item.Notes)
+				req.Items = append(req.Items, item)
+			}
+		}
+		requests = append(requests, req)
+	}
+	respondSuccess(w, requests)
+}
+
+func createATKRequest(w http.ResponseWriter, r *http.Request) {
+	var req ATKRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		respondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	dbTx, err := db.Begin()
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	err = dbTx.QueryRow(
+		`INSERT INTO atk_requests (request_number, employee_id, employee_name, department, request_date, needed_date, purpose, status, notes) 
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id, created_at, updated_at`,
+		req.RequestNumber, req.EmployeeID, req.EmployeeName, req.Department, req.RequestDate, req.NeededDate, req.Purpose, req.Status, req.Notes,
+	).Scan(&req.ID, &req.CreatedAt, &req.UpdatedAt)
+
+	if err != nil {
+		dbTx.Rollback()
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	// Insert items
+	for i, item := range req.Items {
+		err = dbTx.QueryRow(
+			`INSERT INTO atk_request_items (request_id, item_id, quantity_requested, quantity_approved, quantity_issued, status, notes) 
+			 VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+			req.ID, item.ItemID, item.QuantityRequested, item.QuantityApproved, item.QuantityIssued, item.Status, item.Notes,
+		).Scan(&req.Items[i].ID)
+		if err != nil {
+			dbTx.Rollback()
+			respondError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+	}
+
+	dbTx.Commit()
+	respondSuccess(w, req)
+}
+
+func updateATKRequest(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+	var req ATKRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		respondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	_, err := db.Exec(
+		`UPDATE atk_requests SET employee_name=$1, department=$2, needed_date=$3, purpose=$4, status=$5, 
+		 approved_by=$6, approved_date=$7, rejection_reason=$8, notes=$9, updated_at=CURRENT_TIMESTAMP WHERE id=$10`,
+		req.EmployeeName, req.Department, req.NeededDate, req.Purpose, req.Status, 
+		req.ApprovedBy, req.ApprovedDate, req.RejectionReason, req.Notes, id,
+	)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	respondSuccess(w, map[string]string{"message": "Updated successfully"})
+}
+
+func approveATKRequest(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+	var approvalData struct {
+		ApprovedBy string           `json:"approved_by"`
+		Items      []ATKRequestItem `json:"items"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&approvalData); err != nil {
+		respondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	dbTx, err := db.Begin()
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	// Update request status
+	_, err = dbTx.Exec(
+		`UPDATE atk_requests SET status='Approved', approved_by=$1, approved_date=CURRENT_TIMESTAMP, updated_at=CURRENT_TIMESTAMP WHERE id=$2`,
+		approvalData.ApprovedBy, id,
+	)
+	if err != nil {
+		dbTx.Rollback()
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	// Update items and deduct stock
+	for _, item := range approvalData.Items {
+		// Update item status
+		_, err = dbTx.Exec(
+			`UPDATE atk_request_items SET quantity_approved=$1, status='Approved' WHERE id=$2`,
+			item.QuantityApproved, item.ID,
+		)
+		if err != nil {
+			dbTx.Rollback()
+			respondError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		// Deduct stock
+		var currentStock int
+		err = dbTx.QueryRow("SELECT stock FROM atk_items WHERE id=$1", item.ItemID).Scan(&currentStock)
+		if err != nil {
+			dbTx.Rollback()
+			respondError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		newStock := currentStock - item.QuantityApproved
+		_, err = dbTx.Exec("UPDATE atk_items SET stock=$1, updated_at=CURRENT_TIMESTAMP WHERE id=$2", newStock, item.ItemID)
+		if err != nil {
+			dbTx.Rollback()
+			respondError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		// Record transaction
+		_, err = dbTx.Exec(
+			`INSERT INTO atk_stock_transactions (item_id, transaction_type, quantity, previous_stock, new_stock, reference_type, reference_id, notes, created_by) 
+			 VALUES ($1, 'OUT', $2, $3, $4, 'REQUEST', $5, $6, $7)`,
+			item.ItemID, item.QuantityApproved, currentStock, newStock, id, "Request approved", approvalData.ApprovedBy,
+		)
+		if err != nil {
+			dbTx.Rollback()
+			respondError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+	}
+
+	dbTx.Commit()
+	respondSuccess(w, map[string]string{"message": "Request approved successfully"})
+}
+
+func rejectATKRequest(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+	var rejectData struct {
+		RejectedBy string `json:"rejected_by"`
+		Reason     string `json:"reason"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&rejectData); err != nil {
+		respondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	_, err := db.Exec(
+		`UPDATE atk_requests SET status='Rejected', approved_by=$1, approved_date=CURRENT_TIMESTAMP, rejection_reason=$2, updated_at=CURRENT_TIMESTAMP WHERE id=$3`,
+		rejectData.RejectedBy, rejectData.Reason, id,
+	)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	// Update all items to rejected
+	_, err = db.Exec(`UPDATE atk_request_items SET status='Rejected' WHERE request_id=$1`, id)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondSuccess(w, map[string]string{"message": "Request rejected"})
+}
+
+func deleteATKRequest(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+	_, err := db.Exec("DELETE FROM atk_requests WHERE id=$1", id)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, err.Error())
 		return
