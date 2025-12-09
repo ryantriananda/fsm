@@ -118,18 +118,26 @@ export const atkItemService = {
 // ATK Stock Transactions
 export const atkTransactionService = {
   async getAll(): Promise<ATKStockTransaction[]> {
-    const { data, error } = await supabase
-      .from('atk_stock_transactions')
-      .select(`*, atk_items(name)`)
-      .order('created_at', { ascending: false });
-    if (error) throw error;
-    return (data || []).map(tx => ({
-      ...tx,
-      item_name: tx.atk_items?.name || ''
-    }));
+    try {
+      const { data, error } = await supabase
+        .from('atk_stock_transactions')
+        .select(`*, atk_items(name)`)
+        .order('created_at', { ascending: false });
+      if (error) {
+        console.warn('atk_stock_transactions table not found, returning empty array');
+        return [];
+      }
+      return (data || []).map(tx => ({
+        ...tx,
+        item_name: tx.atk_items?.name || ''
+      }));
+    } catch (err) {
+      console.warn('Error fetching transactions:', err);
+      return [];
+    }
   },
 
-  async create(transaction: Partial<ATKStockTransaction>): Promise<ATKStockTransaction> {
+  async create(transaction: Partial<ATKStockTransaction>): Promise<ATKStockTransaction | null> {
     // Get current stock
     const { data: item } = await supabase
       .from('atk_items')
@@ -148,28 +156,36 @@ export const atkTransactionService = {
       newStock = transaction.quantity || 0;
     }
 
-    // Insert transaction
-    const { data, error } = await supabase
-      .from('atk_stock_transactions')
-      .insert([{
-        item_id: transaction.item_id,
-        transaction_type: transaction.transaction_type,
-        quantity: transaction.quantity,
-        previous_stock: currentStock,
-        new_stock: newStock,
-        reference_type: transaction.reference_type,
-        reference_id: transaction.reference_id,
-        notes: transaction.notes,
-        created_by: transaction.created_by
-      }])
-      .select()
-      .single();
-    if (error) throw error;
-
-    // Update item stock
+    // Update item stock first (this should always work)
     await atkItemService.updateStock(transaction.item_id!, newStock);
 
-    return data;
+    // Try to insert transaction record
+    try {
+      const { data, error } = await supabase
+        .from('atk_stock_transactions')
+        .insert([{
+          item_id: transaction.item_id,
+          transaction_type: transaction.transaction_type,
+          quantity: transaction.quantity,
+          previous_stock: currentStock,
+          new_stock: newStock,
+          reference_type: transaction.reference_type,
+          reference_id: transaction.reference_id,
+          notes: transaction.notes,
+          created_by: transaction.created_by
+        }])
+        .select()
+        .single();
+      
+      if (error) {
+        console.warn('Could not record transaction, but stock was updated');
+        return { ...transaction, previous_stock: currentStock, new_stock: newStock } as ATKStockTransaction;
+      }
+      return data;
+    } catch (err) {
+      console.warn('Transaction table not available, but stock was updated');
+      return { ...transaction, previous_stock: currentStock, new_stock: newStock } as ATKStockTransaction;
+    }
   }
 };
 
@@ -290,20 +306,24 @@ export const atkRequestService = {
         .update({ stock: newStock, updated_at: new Date().toISOString() })
         .eq('id', item.item_id);
 
-      // Record transaction
-      await supabase
-        .from('atk_stock_transactions')
-        .insert([{
-          item_id: item.item_id,
-          transaction_type: 'OUT',
-          quantity: item.quantity_requested,
-          previous_stock: currentStock,
-          new_stock: newStock,
-          reference_type: 'REQUEST',
-          reference_id: id,
-          notes: `Request approved`,
-          created_by: approvedBy
-        }]);
+      // Try to record transaction (may fail if table doesn't exist)
+      try {
+        await supabase
+          .from('atk_stock_transactions')
+          .insert([{
+            item_id: item.item_id,
+            transaction_type: 'OUT',
+            quantity: item.quantity_requested,
+            previous_stock: currentStock,
+            new_stock: newStock,
+            reference_type: 'REQUEST',
+            reference_id: id,
+            notes: `Request approved`,
+            created_by: approvedBy
+          }]);
+      } catch (err) {
+        console.warn('Could not record transaction history');
+      }
     }
   },
 

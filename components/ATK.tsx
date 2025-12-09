@@ -39,19 +39,25 @@ const ATK: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
+      // Load each independently to handle partial failures
       const [categoriesData, itemsData, requestsData, transactionsData] = await Promise.all([
-        atkCategoryService.getAll(),
-        atkItemService.getAll(),
-        atkRequestService.getAll(),
-        atkTransactionService.getAll()
+        atkCategoryService.getAll().catch(() => []),
+        atkItemService.getAll().catch(() => []),
+        atkRequestService.getAll().catch(() => []),
+        atkTransactionService.getAll().catch(() => [])
       ]);
       setCategories(categoriesData);
       setInventory(itemsData);
       setRequests(requestsData);
       setTransactions(transactionsData);
+      
+      // Show warning if no data loaded
+      if (categoriesData.length === 0 && itemsData.length === 0) {
+        setError('No data found. Please run the SQL schema in Supabase first.');
+      }
     } catch (err: any) {
       console.error('Error loading data:', err);
-      setError(err.message || 'Failed to load data');
+      setError(err.message || 'Failed to load data. Please check Supabase connection.');
     } finally {
       setLoading(false);
     }
