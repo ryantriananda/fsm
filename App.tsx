@@ -13,7 +13,7 @@ import LogBook from './components/LogBook';
 import ProjectManagement from './components/ProjectManagement';
 import MasterCRUD from './components/MasterCRUD';
 import { Settings } from 'lucide-react';
-import { assetCategoryAPI, assetLocationAPI, assetStatusAPI, assetAPI, vendorAPI, contractAPI } from './services/apiService';
+import { assetCategoryAPI, assetLocationAPI, assetStatusAPI, assetAPI, vendorAPI, contractAPI, maintenanceScheduleAPI, maintenanceTypeAPI, disposalAPI, assetDocumentAPI, sparepartAPI } from './services/apiService';
 
 const App: React.FC = () => {
   const [activeView, setActiveView] = useState('dashboard');
@@ -135,18 +135,19 @@ const App: React.FC = () => {
                 tableName="maintenance_schedules"
                 columns={[
                     { key: 'asset_id', label: 'Asset' },
-                    { key: 'type', label: 'Maintenance Type' },
+                    { key: 'maintenance_type_id', label: 'Maintenance Type' },
                     { key: 'next_date', label: 'Next Due' },
                     { key: 'vendor_id', label: 'Vendor' },
                 ]}
                 fields={[
                     { name: 'asset_id', label: 'Asset ID', type: 'number', required: true },
-                    { name: 'type', label: 'Maintenance Type', type: 'select', options: ['HVAC Service', 'Car Service', 'IT Clean', 'Calibration'] },
+                    { name: 'maintenance_type_id', label: 'Maintenance Type ID', type: 'number', required: true },
                     { name: 'interval', label: 'Interval', type: 'select', options: ['Monthly', 'Quarterly', 'Bi-Annual', 'Annual'] },
                     { name: 'last_date', label: 'Last Maintenance', type: 'date' },
                     { name: 'next_date', label: 'Next Due Date', type: 'date', required: true },
                     { name: 'vendor_id', label: 'Vendor ID', type: 'number' }
                 ]}
+                apiService={maintenanceScheduleAPI}
             />
         );
 
@@ -168,6 +169,7 @@ const App: React.FC = () => {
                     { name: 'sla', label: 'SLA (Hours)', type: 'number' },
                     { name: 'est_cost', label: 'Estimated Cost', type: 'number' }
                 ]}
+                apiService={maintenanceTypeAPI}
             />
         );
 
@@ -184,13 +186,16 @@ const App: React.FC = () => {
                     { key: 'unit', label: 'Unit' },
                 ]}
                 fields={[
+                    { name: 'code', label: 'Part Code', type: 'text', required: true },
                     { name: 'name', label: 'Part Name', type: 'text', required: true },
                     { name: 'category', label: 'Category', type: 'select', options: ['Electrical', 'Mechanical', 'IT', 'Plumbing'] },
                     { name: 'stock', label: 'Current Stock', type: 'number', required: true },
                     { name: 'min_stock', label: 'Minimum Stock', type: 'number' },
                     { name: 'unit', label: 'Unit (Pcs, Box, etc)', type: 'text' },
+                    { name: 'asset_id', label: 'Asset ID', type: 'number' },
                     { name: 'vendor_id', label: 'Supplier ID', type: 'number' }
                 ]}
+                apiService={sparepartAPI}
             />
         );
       
@@ -213,6 +218,7 @@ const App: React.FC = () => {
                     { name: 'details', label: 'Details / Reason / New Location', type: 'textarea' },
                     { name: 'value', label: 'Sale Value (if Disposal)', type: 'number' }
                 ]}
+                apiService={disposalAPI}
             />
          );
 
@@ -236,6 +242,7 @@ const App: React.FC = () => {
                     { name: 'expiry_date', label: 'Expiry Date', type: 'date' },
                     { name: 'notes', label: 'Notes', type: 'textarea' }
                 ]}
+                apiService={assetDocumentAPI}
             />
           );
 

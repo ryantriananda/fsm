@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS assets (
     category_id INT REFERENCES asset_categories(id),
     location_id INT REFERENCES asset_locations(id),
     status_id INT REFERENCES asset_statuses(id),
+    vendor_id INT REFERENCES vendors(id),
     acquisition_cost DECIMAL(15,2),
     residual_value DECIMAL(15,2),
     useful_life INT,
@@ -76,6 +77,7 @@ CREATE TABLE IF NOT EXISTS contracts (
     end_date DATE,
     status VARCHAR(50),
     value DECIMAL(15,2),
+    asset_id INT REFERENCES assets(id),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -103,6 +105,7 @@ CREATE TABLE IF NOT EXISTS ark (
     quantity INT,
     location_id INT REFERENCES asset_locations(id),
     condition VARCHAR(50),
+    asset_id INT REFERENCES assets(id),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -163,7 +166,7 @@ CREATE TABLE IF NOT EXISTS projects (
 CREATE TABLE IF NOT EXISTS maintenance_schedules (
     id SERIAL PRIMARY KEY,
     asset_id INT REFERENCES assets(id),
-    type VARCHAR(100),
+    maintenance_type_id INT REFERENCES maintenance_types(id),
     interval VARCHAR(50),
     last_date DATE,
     next_date DATE,
@@ -192,6 +195,7 @@ CREATE TABLE IF NOT EXISTS spareparts (
     stock INT,
     min_stock INT,
     unit VARCHAR(50),
+    asset_id INT REFERENCES assets(id),
     vendor_id INT REFERENCES vendors(id),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

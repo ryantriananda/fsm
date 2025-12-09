@@ -65,6 +65,7 @@ type Asset struct {
 	CategoryID           int       `json:"category_id"`
 	LocationID           int       `json:"location_id"`
 	StatusID             int       `json:"status_id"`
+	VendorID             int       `json:"vendor_id"`
 	AcquisitionCost      float64   `json:"acquisition_cost"`
 	ResidualValue        float64   `json:"residual_value"`
 	UsefulLife           int       `json:"useful_life"`
@@ -100,6 +101,71 @@ type Contract struct {
 	EndDate   string    `json:"end_date"`
 	Status    string    `json:"status"`
 	Value     float64   `json:"value"`
+	AssetID   int       `json:"asset_id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+// Maintenance Schedule
+type MaintenanceSchedule struct {
+	ID                  int       `json:"id"`
+	AssetID             int       `json:"asset_id"`
+	MaintenanceTypeID   int       `json:"maintenance_type_id"`
+	Interval            string    `json:"interval"`
+	LastDate            string    `json:"last_date"`
+	NextDate            string    `json:"next_date"`
+	VendorID            int       `json:"vendor_id"`
+	CreatedAt           time.Time `json:"created_at"`
+	UpdatedAt           time.Time `json:"updated_at"`
+}
+
+// Maintenance Type
+type MaintenanceType struct {
+	ID        int       `json:"id"`
+	Code      string    `json:"code"`
+	Name      string    `json:"name"`
+	SLA       int       `json:"sla"`
+	EstCost   float64   `json:"est_cost"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+// Disposal
+type Disposal struct {
+	ID        int       `json:"id"`
+	Date      string    `json:"date"`
+	Type      string    `json:"type"`
+	AssetID   int       `json:"asset_id"`
+	Details   string    `json:"details"`
+	Value     float64   `json:"value"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+// Asset Document
+type AssetDocument struct {
+	ID         int       `json:"id"`
+	AssetID    int       `json:"asset_id"`
+	DocType    string    `json:"doc_type"`
+	DocNumber  string    `json:"doc_number"`
+	IssueDate  string    `json:"issue_date"`
+	ExpiryDate string    `json:"expiry_date"`
+	Notes      string    `json:"notes"`
+	CreatedAt  time.Time `json:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at"`
+}
+
+// Sparepart
+type Sparepart struct {
+	ID        int       `json:"id"`
+	Code      string    `json:"code"`
+	Name      string    `json:"name"`
+	Category  string    `json:"category"`
+	Stock     int       `json:"stock"`
+	MinStock  int       `json:"min_stock"`
+	Unit      string    `json:"unit"`
+	AssetID   int       `json:"asset_id"`
+	VendorID  int       `json:"vendor_id"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
@@ -167,6 +233,36 @@ func main() {
 	router.HandleFunc("/api/contracts", createContract).Methods("POST")
 	router.HandleFunc("/api/contracts/{id}", updateContract).Methods("PUT")
 	router.HandleFunc("/api/contracts/{id}", deleteContract).Methods("DELETE")
+
+	// Maintenance Schedules
+	router.HandleFunc("/api/maintenance-schedules", getMaintenanceSchedules).Methods("GET")
+	router.HandleFunc("/api/maintenance-schedules", createMaintenanceSchedule).Methods("POST")
+	router.HandleFunc("/api/maintenance-schedules/{id}", updateMaintenanceSchedule).Methods("PUT")
+	router.HandleFunc("/api/maintenance-schedules/{id}", deleteMaintenanceSchedule).Methods("DELETE")
+
+	// Maintenance Types
+	router.HandleFunc("/api/maintenance-types", getMaintenanceTypes).Methods("GET")
+	router.HandleFunc("/api/maintenance-types", createMaintenanceType).Methods("POST")
+	router.HandleFunc("/api/maintenance-types/{id}", updateMaintenanceType).Methods("PUT")
+	router.HandleFunc("/api/maintenance-types/{id}", deleteMaintenanceType).Methods("DELETE")
+
+	// Disposals
+	router.HandleFunc("/api/disposals", getDisposals).Methods("GET")
+	router.HandleFunc("/api/disposals", createDisposal).Methods("POST")
+	router.HandleFunc("/api/disposals/{id}", updateDisposal).Methods("PUT")
+	router.HandleFunc("/api/disposals/{id}", deleteDisposal).Methods("DELETE")
+
+	// Asset Documents
+	router.HandleFunc("/api/asset-documents", getAssetDocuments).Methods("GET")
+	router.HandleFunc("/api/asset-documents", createAssetDocument).Methods("POST")
+	router.HandleFunc("/api/asset-documents/{id}", updateAssetDocument).Methods("PUT")
+	router.HandleFunc("/api/asset-documents/{id}", deleteAssetDocument).Methods("DELETE")
+
+	// Spareparts
+	router.HandleFunc("/api/spareparts", getSpareparts).Methods("GET")
+	router.HandleFunc("/api/spareparts", createSparepart).Methods("POST")
+	router.HandleFunc("/api/spareparts/{id}", updateSparepart).Methods("PUT")
+	router.HandleFunc("/api/spareparts/{id}", deleteSparepart).Methods("DELETE")
 
 	fmt.Println("Server running on http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", router))
@@ -413,7 +509,7 @@ func deleteAssetStatus(w http.ResponseWriter, r *http.Request) {
 
 // Assets Handlers
 func getAssets(w http.ResponseWriter, r *http.Request) {
-	rows, err := db.Query("SELECT id, code, name, category_id, location_id, status_id, acquisition_cost, residual_value, useful_life, depreciation_method, book_value, created_at, updated_at FROM assets")
+	rows, err := db.Query("SELECT id, code, name, category_id, location_id, status_id, vendor_id, acquisition_cost, residual_value, useful_life, depreciation_method, book_value, created_at, updated_at FROM assets")
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -423,7 +519,7 @@ func getAssets(w http.ResponseWriter, r *http.Request) {
 	var assets []Asset
 	for rows.Next() {
 		var asset Asset
-		if err := rows.Scan(&asset.ID, &asset.Code, &asset.Name, &asset.CategoryID, &asset.LocationID, &asset.StatusID, &asset.AcquisitionCost, &asset.ResidualValue, &asset.UsefulLife, &asset.DepreciationMethod, &asset.BookValue, &asset.CreatedAt, &asset.UpdatedAt); err != nil {
+		if err := rows.Scan(&asset.ID, &asset.Code, &asset.Name, &asset.CategoryID, &asset.LocationID, &asset.StatusID, &asset.VendorID, &asset.AcquisitionCost, &asset.ResidualValue, &asset.UsefulLife, &asset.DepreciationMethod, &asset.BookValue, &asset.CreatedAt, &asset.UpdatedAt); err != nil {
 			respondError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
@@ -441,8 +537,8 @@ func createAsset(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err := db.QueryRow(
-		"INSERT INTO assets (code, name, category_id, location_id, status_id, acquisition_cost, residual_value, useful_life, depreciation_method, book_value) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id, created_at, updated_at",
-		asset.Code, asset.Name, asset.CategoryID, asset.LocationID, asset.StatusID, asset.AcquisitionCost, asset.ResidualValue, asset.UsefulLife, asset.DepreciationMethod, asset.BookValue,
+		"INSERT INTO assets (code, name, category_id, location_id, status_id, vendor_id, acquisition_cost, residual_value, useful_life, depreciation_method, book_value) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id, created_at, updated_at",
+		asset.Code, asset.Name, asset.CategoryID, asset.LocationID, asset.StatusID, asset.VendorID, asset.AcquisitionCost, asset.ResidualValue, asset.UsefulLife, asset.DepreciationMethod, asset.BookValue,
 	).Scan(&asset.ID, &asset.CreatedAt, &asset.UpdatedAt)
 
 	if err != nil {
@@ -462,8 +558,8 @@ func updateAsset(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_, err := db.Exec(
-		"UPDATE assets SET code=$1, name=$2, category_id=$3, location_id=$4, status_id=$5, acquisition_cost=$6, residual_value=$7, useful_life=$8, depreciation_method=$9, book_value=$10, updated_at=CURRENT_TIMESTAMP WHERE id=$11",
-		asset.Code, asset.Name, asset.CategoryID, asset.LocationID, asset.StatusID, asset.AcquisitionCost, asset.ResidualValue, asset.UsefulLife, asset.DepreciationMethod, asset.BookValue, id,
+		"UPDATE assets SET code=$1, name=$2, category_id=$3, location_id=$4, status_id=$5, vendor_id=$6, acquisition_cost=$7, residual_value=$8, useful_life=$9, depreciation_method=$10, book_value=$11, updated_at=CURRENT_TIMESTAMP WHERE id=$12",
+		asset.Code, asset.Name, asset.CategoryID, asset.LocationID, asset.StatusID, asset.VendorID, asset.AcquisitionCost, asset.ResidualValue, asset.UsefulLife, asset.DepreciationMethod, asset.BookValue, id,
 	)
 
 	if err != nil {
@@ -559,7 +655,7 @@ func deleteVendor(w http.ResponseWriter, r *http.Request) {
 
 // Contracts Handlers
 func getContracts(w http.ResponseWriter, r *http.Request) {
-	rows, err := db.Query("SELECT id, code, title, party_name, type, start_date, end_date, status, value, created_at, updated_at FROM contracts")
+	rows, err := db.Query("SELECT id, code, title, party_name, type, start_date, end_date, status, value, asset_id, created_at, updated_at FROM contracts")
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -569,7 +665,7 @@ func getContracts(w http.ResponseWriter, r *http.Request) {
 	var contracts []Contract
 	for rows.Next() {
 		var contract Contract
-		if err := rows.Scan(&contract.ID, &contract.Code, &contract.Title, &contract.PartyName, &contract.Type, &contract.StartDate, &contract.EndDate, &contract.Status, &contract.Value, &contract.CreatedAt, &contract.UpdatedAt); err != nil {
+		if err := rows.Scan(&contract.ID, &contract.Code, &contract.Title, &contract.PartyName, &contract.Type, &contract.StartDate, &contract.EndDate, &contract.Status, &contract.Value, &contract.AssetID, &contract.CreatedAt, &contract.UpdatedAt); err != nil {
 			respondError(w, http.StatusInternalServerError, err.Error())
 			return
 		}
@@ -587,8 +683,8 @@ func createContract(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err := db.QueryRow(
-		"INSERT INTO contracts (code, title, party_name, type, start_date, end_date, status, value) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id, created_at, updated_at",
-		contract.Code, contract.Title, contract.PartyName, contract.Type, contract.StartDate, contract.EndDate, contract.Status, contract.Value,
+		"INSERT INTO contracts (code, title, party_name, type, start_date, end_date, status, value, asset_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id, created_at, updated_at",
+		contract.Code, contract.Title, contract.PartyName, contract.Type, contract.StartDate, contract.EndDate, contract.Status, contract.Value, contract.AssetID,
 	).Scan(&contract.ID, &contract.CreatedAt, &contract.UpdatedAt)
 
 	if err != nil {
@@ -608,8 +704,8 @@ func updateContract(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_, err := db.Exec(
-		"UPDATE contracts SET code=$1, title=$2, party_name=$3, type=$4, start_date=$5, end_date=$6, status=$7, value=$8, updated_at=CURRENT_TIMESTAMP WHERE id=$9",
-		contract.Code, contract.Title, contract.PartyName, contract.Type, contract.StartDate, contract.EndDate, contract.Status, contract.Value, id,
+		"UPDATE contracts SET code=$1, title=$2, party_name=$3, type=$4, start_date=$5, end_date=$6, status=$7, value=$8, asset_id=$9, updated_at=CURRENT_TIMESTAMP WHERE id=$10",
+		contract.Code, contract.Title, contract.PartyName, contract.Type, contract.StartDate, contract.EndDate, contract.Status, contract.Value, contract.AssetID, id,
 	)
 
 	if err != nil {
@@ -623,6 +719,371 @@ func updateContract(w http.ResponseWriter, r *http.Request) {
 func deleteContract(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
 	_, err := db.Exec("DELETE FROM contracts WHERE id=$1", id)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	respondSuccess(w, map[string]string{"message": "Deleted successfully"})
+}
+
+// Maintenance Schedules Handlers
+func getMaintenanceSchedules(w http.ResponseWriter, r *http.Request) {
+	rows, err := db.Query("SELECT id, asset_id, maintenance_type_id, interval, last_date, next_date, vendor_id, created_at, updated_at FROM maintenance_schedules")
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer rows.Close()
+
+	var schedules []MaintenanceSchedule
+	for rows.Next() {
+		var schedule MaintenanceSchedule
+		if err := rows.Scan(&schedule.ID, &schedule.AssetID, &schedule.MaintenanceTypeID, &schedule.Interval, &schedule.LastDate, &schedule.NextDate, &schedule.VendorID, &schedule.CreatedAt, &schedule.UpdatedAt); err != nil {
+			respondError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		schedules = append(schedules, schedule)
+	}
+
+	respondSuccess(w, schedules)
+}
+
+func createMaintenanceSchedule(w http.ResponseWriter, r *http.Request) {
+	var schedule MaintenanceSchedule
+	if err := json.NewDecoder(r.Body).Decode(&schedule); err != nil {
+		respondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err := db.QueryRow(
+		"INSERT INTO maintenance_schedules (asset_id, maintenance_type_id, interval, last_date, next_date, vendor_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, created_at, updated_at",
+		schedule.AssetID, schedule.MaintenanceTypeID, schedule.Interval, schedule.LastDate, schedule.NextDate, schedule.VendorID,
+	).Scan(&schedule.ID, &schedule.CreatedAt, &schedule.UpdatedAt)
+
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondSuccess(w, schedule)
+}
+
+func updateMaintenanceSchedule(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+	var schedule MaintenanceSchedule
+	if err := json.NewDecoder(r.Body).Decode(&schedule); err != nil {
+		respondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	_, err := db.Exec(
+		"UPDATE maintenance_schedules SET asset_id=$1, maintenance_type_id=$2, interval=$3, last_date=$4, next_date=$5, vendor_id=$6, updated_at=CURRENT_TIMESTAMP WHERE id=$7",
+		schedule.AssetID, schedule.MaintenanceTypeID, schedule.Interval, schedule.LastDate, schedule.NextDate, schedule.VendorID, id,
+	)
+
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondSuccess(w, map[string]string{"message": "Updated successfully"})
+}
+
+func deleteMaintenanceSchedule(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+	_, err := db.Exec("DELETE FROM maintenance_schedules WHERE id=$1", id)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	respondSuccess(w, map[string]string{"message": "Deleted successfully"})
+}
+
+// Maintenance Types Handlers
+func getMaintenanceTypes(w http.ResponseWriter, r *http.Request) {
+	rows, err := db.Query("SELECT id, code, name, sla, est_cost, created_at, updated_at FROM maintenance_types")
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer rows.Close()
+
+	var types []MaintenanceType
+	for rows.Next() {
+		var t MaintenanceType
+		if err := rows.Scan(&t.ID, &t.Code, &t.Name, &t.SLA, &t.EstCost, &t.CreatedAt, &t.UpdatedAt); err != nil {
+			respondError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		types = append(types, t)
+	}
+
+	respondSuccess(w, types)
+}
+
+func createMaintenanceType(w http.ResponseWriter, r *http.Request) {
+	var t MaintenanceType
+	if err := json.NewDecoder(r.Body).Decode(&t); err != nil {
+		respondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err := db.QueryRow(
+		"INSERT INTO maintenance_types (code, name, sla, est_cost) VALUES ($1, $2, $3, $4) RETURNING id, created_at, updated_at",
+		t.Code, t.Name, t.SLA, t.EstCost,
+	).Scan(&t.ID, &t.CreatedAt, &t.UpdatedAt)
+
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondSuccess(w, t)
+}
+
+func updateMaintenanceType(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+	var t MaintenanceType
+	if err := json.NewDecoder(r.Body).Decode(&t); err != nil {
+		respondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	_, err := db.Exec(
+		"UPDATE maintenance_types SET code=$1, name=$2, sla=$3, est_cost=$4, updated_at=CURRENT_TIMESTAMP WHERE id=$5",
+		t.Code, t.Name, t.SLA, t.EstCost, id,
+	)
+
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondSuccess(w, map[string]string{"message": "Updated successfully"})
+}
+
+func deleteMaintenanceType(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+	_, err := db.Exec("DELETE FROM maintenance_types WHERE id=$1", id)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	respondSuccess(w, map[string]string{"message": "Deleted successfully"})
+}
+
+// Disposals Handlers
+func getDisposals(w http.ResponseWriter, r *http.Request) {
+	rows, err := db.Query("SELECT id, date, type, asset_id, details, value, created_at, updated_at FROM disposals")
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer rows.Close()
+
+	var disposals []Disposal
+	for rows.Next() {
+		var disposal Disposal
+		if err := rows.Scan(&disposal.ID, &disposal.Date, &disposal.Type, &disposal.AssetID, &disposal.Details, &disposal.Value, &disposal.CreatedAt, &disposal.UpdatedAt); err != nil {
+			respondError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		disposals = append(disposals, disposal)
+	}
+
+	respondSuccess(w, disposals)
+}
+
+func createDisposal(w http.ResponseWriter, r *http.Request) {
+	var disposal Disposal
+	if err := json.NewDecoder(r.Body).Decode(&disposal); err != nil {
+		respondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err := db.QueryRow(
+		"INSERT INTO disposals (date, type, asset_id, details, value) VALUES ($1, $2, $3, $4, $5) RETURNING id, created_at, updated_at",
+		disposal.Date, disposal.Type, disposal.AssetID, disposal.Details, disposal.Value,
+	).Scan(&disposal.ID, &disposal.CreatedAt, &disposal.UpdatedAt)
+
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondSuccess(w, disposal)
+}
+
+func updateDisposal(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+	var disposal Disposal
+	if err := json.NewDecoder(r.Body).Decode(&disposal); err != nil {
+		respondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	_, err := db.Exec(
+		"UPDATE disposals SET date=$1, type=$2, asset_id=$3, details=$4, value=$5, updated_at=CURRENT_TIMESTAMP WHERE id=$6",
+		disposal.Date, disposal.Type, disposal.AssetID, disposal.Details, disposal.Value, id,
+	)
+
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondSuccess(w, map[string]string{"message": "Updated successfully"})
+}
+
+func deleteDisposal(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+	_, err := db.Exec("DELETE FROM disposals WHERE id=$1", id)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	respondSuccess(w, map[string]string{"message": "Deleted successfully"})
+}
+
+// Asset Documents Handlers
+func getAssetDocuments(w http.ResponseWriter, r *http.Request) {
+	rows, err := db.Query("SELECT id, asset_id, doc_type, doc_number, issue_date, expiry_date, notes, created_at, updated_at FROM asset_documents")
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer rows.Close()
+
+	var documents []AssetDocument
+	for rows.Next() {
+		var doc AssetDocument
+		if err := rows.Scan(&doc.ID, &doc.AssetID, &doc.DocType, &doc.DocNumber, &doc.IssueDate, &doc.ExpiryDate, &doc.Notes, &doc.CreatedAt, &doc.UpdatedAt); err != nil {
+			respondError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		documents = append(documents, doc)
+	}
+
+	respondSuccess(w, documents)
+}
+
+func createAssetDocument(w http.ResponseWriter, r *http.Request) {
+	var doc AssetDocument
+	if err := json.NewDecoder(r.Body).Decode(&doc); err != nil {
+		respondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err := db.QueryRow(
+		"INSERT INTO asset_documents (asset_id, doc_type, doc_number, issue_date, expiry_date, notes) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, created_at, updated_at",
+		doc.AssetID, doc.DocType, doc.DocNumber, doc.IssueDate, doc.ExpiryDate, doc.Notes,
+	).Scan(&doc.ID, &doc.CreatedAt, &doc.UpdatedAt)
+
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondSuccess(w, doc)
+}
+
+func updateAssetDocument(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+	var doc AssetDocument
+	if err := json.NewDecoder(r.Body).Decode(&doc); err != nil {
+		respondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	_, err := db.Exec(
+		"UPDATE asset_documents SET asset_id=$1, doc_type=$2, doc_number=$3, issue_date=$4, expiry_date=$5, notes=$6, updated_at=CURRENT_TIMESTAMP WHERE id=$7",
+		doc.AssetID, doc.DocType, doc.DocNumber, doc.IssueDate, doc.ExpiryDate, doc.Notes, id,
+	)
+
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondSuccess(w, map[string]string{"message": "Updated successfully"})
+}
+
+func deleteAssetDocument(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+	_, err := db.Exec("DELETE FROM asset_documents WHERE id=$1", id)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	respondSuccess(w, map[string]string{"message": "Deleted successfully"})
+}
+
+// Spareparts Handlers
+func getSpareparts(w http.ResponseWriter, r *http.Request) {
+	rows, err := db.Query("SELECT id, code, name, category, stock, min_stock, unit, asset_id, vendor_id, created_at, updated_at FROM spareparts")
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer rows.Close()
+
+	var spareparts []Sparepart
+	for rows.Next() {
+		var sp Sparepart
+		if err := rows.Scan(&sp.ID, &sp.Code, &sp.Name, &sp.Category, &sp.Stock, &sp.MinStock, &sp.Unit, &sp.AssetID, &sp.VendorID, &sp.CreatedAt, &sp.UpdatedAt); err != nil {
+			respondError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		spareparts = append(spareparts, sp)
+	}
+
+	respondSuccess(w, spareparts)
+}
+
+func createSparepart(w http.ResponseWriter, r *http.Request) {
+	var sp Sparepart
+	if err := json.NewDecoder(r.Body).Decode(&sp); err != nil {
+		respondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err := db.QueryRow(
+		"INSERT INTO spareparts (code, name, category, stock, min_stock, unit, asset_id, vendor_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id, created_at, updated_at",
+		sp.Code, sp.Name, sp.Category, sp.Stock, sp.MinStock, sp.Unit, sp.AssetID, sp.VendorID,
+	).Scan(&sp.ID, &sp.CreatedAt, &sp.UpdatedAt)
+
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondSuccess(w, sp)
+}
+
+func updateSparepart(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+	var sp Sparepart
+	if err := json.NewDecoder(r.Body).Decode(&sp); err != nil {
+		respondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	_, err := db.Exec(
+		"UPDATE spareparts SET code=$1, name=$2, category=$3, stock=$4, min_stock=$5, unit=$6, asset_id=$7, vendor_id=$8, updated_at=CURRENT_TIMESTAMP WHERE id=$9",
+		sp.Code, sp.Name, sp.Category, sp.Stock, sp.MinStock, sp.Unit, sp.AssetID, sp.VendorID, id,
+	)
+
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondSuccess(w, map[string]string{"message": "Updated successfully"})
+}
+
+func deleteSparepart(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+	_, err := db.Exec("DELETE FROM spareparts WHERE id=$1", id)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, err.Error())
 		return
