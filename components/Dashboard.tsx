@@ -18,24 +18,25 @@ interface StatCardProps {
   title: string;
   value: string | number;
   icon: React.ReactNode;
-  color: string;
+  bgColor: string;
+  iconBg: string;
   trend?: string;
 }
 
-const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color, trend }) => (
-  <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+const StatCard: React.FC<StatCardProps> = ({ title, value, icon, bgColor, iconBg, trend }) => (
+  <div className={`${bgColor} rounded-xl p-6 border border-gray-200 hover:shadow-md transition-shadow`}>
     <div className="flex items-center justify-between">
       <div>
         <p className="text-sm text-gray-500 font-medium">{title}</p>
         <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
         {trend && (
-          <p className="text-xs text-emerald-600 mt-1 flex items-center gap-1">
-            <TrendingUp size={12} />
+          <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+            <TrendingUp size={12} className="text-gray-400" />
             {trend}
           </p>
         )}
       </div>
-      <div className={`p-3 rounded-xl ${color}`}>
+      <div className={`p-3 rounded-xl ${iconBg}`}>
         {icon}
       </div>
     </div>
@@ -51,9 +52,9 @@ interface RecentActivityProps {
 
 const RecentActivity: React.FC<RecentActivityProps> = ({ type, description, time, status }) => {
   const statusColors = {
-    success: 'bg-emerald-100 text-emerald-600',
-    warning: 'bg-amber-100 text-amber-600',
-    info: 'bg-blue-100 text-blue-600'
+    success: 'bg-gray-100 text-gray-600',
+    warning: 'bg-gray-100 text-gray-600',
+    info: 'bg-gray-100 text-gray-600'
   };
 
   return (
@@ -138,7 +139,7 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className="p-8 bg-gray-50 min-h-full">
+    <div className="p-8 bg-[#f3f4f6] min-h-full">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
@@ -150,27 +151,31 @@ const Dashboard: React.FC = () => {
         <StatCard
           title="Total Assets"
           value={stats.totalAssets}
-          icon={<Package size={24} className="text-white" />}
-          color="bg-blue-500"
+          icon={<Package size={24} className="text-gray-600" />}
+          bgColor="bg-white"
+          iconBg="bg-gray-100"
           trend="+12% from last month"
         />
         <StatCard
           title="Locations"
           value={stats.locations}
-          icon={<MapPin size={24} className="text-white" />}
-          color="bg-emerald-500"
+          icon={<MapPin size={24} className="text-gray-600" />}
+          bgColor="bg-white"
+          iconBg="bg-gray-100"
         />
         <StatCard
           title="Categories"
           value={stats.categories}
-          icon={<CheckCircle size={24} className="text-white" />}
-          color="bg-violet-500"
+          icon={<CheckCircle size={24} className="text-gray-600" />}
+          bgColor="bg-white"
+          iconBg="bg-gray-100"
         />
         <StatCard
           title="Vendors"
           value={stats.vendors}
-          icon={<Users size={24} className="text-white" />}
-          color="bg-amber-500"
+          icon={<Users size={24} className="text-gray-600" />}
+          bgColor="bg-white"
+          iconBg="bg-gray-100"
         />
       </div>
 
@@ -179,36 +184,40 @@ const Dashboard: React.FC = () => {
         <StatCard
           title="Active Contracts"
           value={stats.contracts}
-          icon={<FileText size={24} className="text-white" />}
-          color="bg-indigo-500"
+          icon={<FileText size={24} className="text-gray-600" />}
+          bgColor="bg-white"
+          iconBg="bg-gray-100"
         />
         <StatCard
           title="Pending Maintenance"
           value={3}
-          icon={<Wrench size={24} className="text-white" />}
-          color="bg-orange-500"
+          icon={<Wrench size={24} className="text-gray-600" />}
+          bgColor="bg-white"
+          iconBg="bg-gray-100"
         />
         <StatCard
           title="Expiring Soon"
           value={2}
-          icon={<AlertTriangle size={24} className="text-white" />}
-          color="bg-red-500"
+          icon={<AlertTriangle size={24} className="text-gray-600" />}
+          bgColor="bg-white"
+          iconBg="bg-gray-100"
         />
         <StatCard
           title="Total Value"
           value="Rp 1.2B"
-          icon={<DollarSign size={24} className="text-white" />}
-          color="bg-teal-500"
+          icon={<DollarSign size={24} className="text-gray-600" />}
+          bgColor="bg-white"
+          iconBg="bg-gray-100"
         />
       </div>
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Activity */}
-        <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div className="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-gray-900">Recent Activity</h2>
-            <button className="text-sm text-blue-600 hover:text-blue-700">View All</button>
+            <button className="text-sm text-gray-500 hover:text-gray-900">View All</button>
           </div>
           <div className="space-y-2">
             {recentActivities.map((activity, index) => (
@@ -218,17 +227,17 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Upcoming Maintenance */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-gray-900">Upcoming Maintenance</h2>
             <Calendar size={20} className="text-gray-400" />
           </div>
           <div className="space-y-4">
             {upcomingMaintenance.map((item, index) => (
-              <div key={index} className="p-3 bg-gray-50 rounded-lg">
+              <div key={index} className="p-3 bg-gray-50 rounded-lg border border-gray-100">
                 <div className="flex items-center justify-between mb-1">
                   <p className="text-sm font-medium text-gray-900">{item.asset}</p>
-                  <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">
+                  <span className="text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded">
                     {item.type}
                   </span>
                 </div>
@@ -245,31 +254,31 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Quick Actions */}
-      <div className="mt-8 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <div className="mt-8 bg-white rounded-xl border border-gray-200 p-6">
         <h2 className="text-lg font-bold text-gray-900 mb-4">Quick Actions</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-          <button className="flex flex-col items-center gap-2 p-4 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors">
-            <Package size={24} className="text-blue-600" />
+          <button className="flex flex-col items-center gap-2 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors border border-gray-100">
+            <Package size={24} className="text-gray-700" />
             <span className="text-sm font-medium text-gray-700">Add Asset</span>
           </button>
-          <button className="flex flex-col items-center gap-2 p-4 bg-emerald-50 rounded-xl hover:bg-emerald-100 transition-colors">
-            <Wrench size={24} className="text-emerald-600" />
+          <button className="flex flex-col items-center gap-2 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors border border-gray-100">
+            <Wrench size={24} className="text-gray-700" />
             <span className="text-sm font-medium text-gray-700">Schedule Maintenance</span>
           </button>
-          <button className="flex flex-col items-center gap-2 p-4 bg-violet-50 rounded-xl hover:bg-violet-100 transition-colors">
-            <Users size={24} className="text-violet-600" />
+          <button className="flex flex-col items-center gap-2 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors border border-gray-100">
+            <Users size={24} className="text-gray-700" />
             <span className="text-sm font-medium text-gray-700">Add Vendor</span>
           </button>
-          <button className="flex flex-col items-center gap-2 p-4 bg-amber-50 rounded-xl hover:bg-amber-100 transition-colors">
-            <FileText size={24} className="text-amber-600" />
+          <button className="flex flex-col items-center gap-2 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors border border-gray-100">
+            <FileText size={24} className="text-gray-700" />
             <span className="text-sm font-medium text-gray-700">New Contract</span>
           </button>
-          <button className="flex flex-col items-center gap-2 p-4 bg-red-50 rounded-xl hover:bg-red-100 transition-colors">
-            <AlertTriangle size={24} className="text-red-600" />
+          <button className="flex flex-col items-center gap-2 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors border border-gray-100">
+            <AlertTriangle size={24} className="text-gray-700" />
             <span className="text-sm font-medium text-gray-700">Report Issue</span>
           </button>
-          <button className="flex flex-col items-center gap-2 p-4 bg-teal-50 rounded-xl hover:bg-teal-100 transition-colors">
-            <TrendingUp size={24} className="text-teal-600" />
+          <button className="flex flex-col items-center gap-2 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors border border-gray-100">
+            <TrendingUp size={24} className="text-gray-700" />
             <span className="text-sm font-medium text-gray-700">View Reports</span>
           </button>
         </div>
