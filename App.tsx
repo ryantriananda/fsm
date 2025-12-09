@@ -12,6 +12,7 @@ import CreditCard from './components/CreditCard';
 import LogBook from './components/LogBook';
 import ProjectManagement from './components/ProjectManagement';
 import MasterCRUD from './components/MasterCRUD';
+import RolePermissionsMatrix from './components/RolePermissionsMatrix';
 import { Settings } from 'lucide-react';
 import { assetCategoryAPI, assetLocationAPI, assetStatusAPI, assetAPI, vendorAPI, contractAPI, maintenanceScheduleAPI, maintenanceTypeAPI, disposalAPI, assetDocumentAPI, sparepartAPI, assetRoleAPI } from './services/apiService';
 
@@ -254,20 +255,31 @@ const App: React.FC = () => {
                 tableName="asset_roles"
                 columns={[
                     { key: 'user_name', label: 'User' },
-                    { key: 'department', label: 'Department' },
-                    { key: 'role', label: 'Role' },
+                    { key: 'department', label: 'Department', render: (val) => <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs">{val}</span> },
+                    { key: 'role', label: 'Role', render: (val) => {
+                      const colors: Record<string, string> = {
+                        'Admin': 'bg-red-100 text-red-700',
+                        'Approver': 'bg-blue-100 text-blue-700',
+                        'Operator': 'bg-green-100 text-green-700',
+                        'Viewer': 'bg-gray-100 text-gray-700'
+                      };
+                      return <span className={`px-2 py-0.5 rounded text-xs font-medium ${colors[val] || 'bg-gray-100'}`}>{val}</span>;
+                    }},
                     { key: 'approval_limit', label: 'Approval Limit', render: (val) => `Rp ${Number(val).toLocaleString()}` },
                 ]}
                 fields={[
                     { name: 'user_name', label: 'User Name', type: 'text', required: true },
-                    { name: 'department', label: 'Department', type: 'select', options: ['IT', 'HR', 'GA', 'Finance', 'Ops'] },
-                    { name: 'role', label: 'Asset Role', type: 'select', options: ['Admin', 'Viewer', 'Approver', 'Operator'] },
+                    { name: 'department', label: 'Department', type: 'select', options: ['IT', 'HR', 'GA', 'Finance', 'Ops', 'Marketing', 'Sales', 'Production'] },
+                    { name: 'role', label: 'Asset Role', type: 'select', options: ['Admin', 'Approver', 'Operator', 'Viewer'] },
                     { name: 'approval_limit', label: 'Approval Limit (Rp)', type: 'number' },
-                    { name: 'menu_access', label: 'Menu Access', type: 'text' }
+                    { name: 'menu_access', label: 'Menu Access (auto by role)', type: 'text' }
                 ]}
                 apiService={assetRoleAPI}
             />
         );
+
+      case 'role-permissions':
+        return <RolePermissionsMatrix />;
 
       default:
         return (

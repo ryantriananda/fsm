@@ -1,41 +1,53 @@
 import React from 'react';
-import { Search, Bell, Cloud, Wifi, MessageSquare, ChevronDown } from 'lucide-react';
+import { Search, Bell, Settings, User, ChevronDown } from 'lucide-react';
 
 const Header: React.FC = () => {
   return (
-    <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 sticky top-0 z-10 ml-64 shadow-sm">
+    <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 sticky top-0 z-10">
+      {/* Left - Breadcrumb */}
       <div className="flex items-center gap-2">
-        <div className="p-1.5 bg-gray-900 rounded-md text-white shadow-sm">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-            <line x1="3" y1="9" x2="21" y2="9"></line>
-            <line x1="9" y1="21" x2="9" y2="9"></line>
-          </svg>
-        </div>
-        <span className="font-semibold text-gray-900 tracking-tight">Asset Control</span>
-        <ChevronDown size={16} className="text-gray-400" />
+        <span className="text-sm text-gray-500">Home</span>
+        <span className="text-gray-300">/</span>
+        <span className="text-sm font-medium text-gray-900">Dashboard</span>
       </div>
 
-      <div className="flex items-center gap-5">
-        <button className="text-gray-400 hover:text-gray-900 transition-colors"><Search size={20} /></button>
-        <button className="text-gray-400 hover:text-gray-900 transition-colors"><Wifi size={20} /></button>
-        <button className="text-gray-400 hover:text-gray-900 transition-colors"><Cloud size={20} /></button>
-        <div className="relative">
-          <button className="text-gray-400 hover:text-gray-900 transition-colors"><Bell size={20} /></button>
-          <span className="absolute top-0 right-0 h-2.5 w-2.5 bg-rose-500 rounded-full border-2 border-white"></span>
+      {/* Right - Actions */}
+      <div className="flex items-center gap-4">
+        {/* Search */}
+        <div className="relative hidden md:block">
+          <input 
+            type="text" 
+            placeholder="Search..." 
+            className="w-64 bg-gray-50 text-gray-700 text-sm rounded-lg py-2 pl-9 pr-4 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-200 focus:border-gray-300 placeholder-gray-400"
+          />
+          <Search className="absolute left-3 top-2.5 text-gray-400" size={16} />
         </div>
-        <div className="border-l border-gray-200 h-6 mx-1"></div>
-        <div className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded-full pr-3 transition-colors">
-          <div className="w-8 h-8 bg-gradient-to-br from-gray-800 to-black rounded-full flex items-center justify-center text-xs font-bold text-white shadow-sm">
-            MO
+
+        {/* Notifications */}
+        <button className="relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+          <Bell size={20} />
+          <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full"></span>
+        </button>
+
+        {/* Settings */}
+        <button className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+          <Settings size={20} />
+        </button>
+
+        {/* Divider */}
+        <div className="h-8 w-px bg-gray-200"></div>
+
+        {/* User Profile */}
+        <button className="flex items-center gap-3 hover:bg-gray-50 p-2 rounded-lg transition-colors">
+          <div className="w-8 h-8 bg-gray-900 rounded-full flex items-center justify-center">
+            <User size={16} className="text-white" />
           </div>
-          <div className="relative">
-            <MessageSquare size={20} className="text-gray-500" />
-             <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-gray-900 text-[10px] text-white ring-2 ring-white">
-              85
-            </span>
+          <div className="hidden md:block text-left">
+            <p className="text-sm font-medium text-gray-900">Admin User</p>
+            <p className="text-xs text-gray-500">Administrator</p>
           </div>
-        </div>
+          <ChevronDown size={16} className="text-gray-400 hidden md:block" />
+        </button>
       </div>
     </header>
   );

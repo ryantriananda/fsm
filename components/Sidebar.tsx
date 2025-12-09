@@ -27,7 +27,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, onNavigate }) => {
     const masterAssetKeys = [
       'asset-list', 'asset-category', 'asset-location', 'asset-status', 
       'vendor', 'contract', 'asset-value', 'maintenance-schedule', 
-      'maintenance-type', 'sparepart', 'disposal', 'asset-docs', 'asset-role'
+      'maintenance-type', 'sparepart', 'disposal', 'asset-docs', 'asset-role', 'role-permissions'
     ];
     if (masterAssetKeys.includes(activeView)) {
       setIsMasterAssetOpen(true);
@@ -122,6 +122,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, onNavigate }) => {
               <SubNavItem label="Disposal & Mutasi" onClick={() => onNavigate('disposal')} active={activeView === 'disposal'} />
               <SubNavItem label="Dokumen Asset" onClick={() => onNavigate('asset-docs')} active={activeView === 'asset-docs'} />
               <SubNavItem label="Role & PIC" onClick={() => onNavigate('asset-role')} active={activeView === 'asset-role'} />
+              <SubNavItem label="Role Permissions" onClick={() => onNavigate('role-permissions')} active={activeView === 'role-permissions'} />
             </div>
           )}
         </div>
