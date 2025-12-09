@@ -336,3 +336,34 @@ export const sparepartAPI = {
     return res.json() as Promise<ApiResponse<any>>;
   },
 };
+
+
+// Asset Roles
+export const assetRoleAPI = {
+  getAll: async () => {
+    const res = await fetch(`${API_BASE_URL}/asset-roles`);
+    return res.json() as Promise<ApiResponse<any[]>>;
+  },
+  create: async (data: any) => {
+    const res = await fetch(`${API_BASE_URL}/asset-roles`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    return res.json() as Promise<ApiResponse<any>>;
+  },
+  update: async (id: number, data: any) => {
+    const res = await fetch(`${API_BASE_URL}/asset-roles/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    return res.json() as Promise<ApiResponse<any>>;
+  },
+  delete: async (id: number) => {
+    const res = await fetch(`${API_BASE_URL}/asset-roles/${id}`, {
+      method: 'DELETE',
+    });
+    return res.json() as Promise<ApiResponse<any>>;
+  },
+};

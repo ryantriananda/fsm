@@ -13,7 +13,7 @@ import LogBook from './components/LogBook';
 import ProjectManagement from './components/ProjectManagement';
 import MasterCRUD from './components/MasterCRUD';
 import { Settings } from 'lucide-react';
-import { assetCategoryAPI, assetLocationAPI, assetStatusAPI, assetAPI, vendorAPI, contractAPI, maintenanceScheduleAPI, maintenanceTypeAPI, disposalAPI, assetDocumentAPI, sparepartAPI } from './services/apiService';
+import { assetCategoryAPI, assetLocationAPI, assetStatusAPI, assetAPI, vendorAPI, contractAPI, maintenanceScheduleAPI, maintenanceTypeAPI, disposalAPI, assetDocumentAPI, sparepartAPI, assetRoleAPI } from './services/apiService';
 
 const App: React.FC = () => {
   const [activeView, setActiveView] = useState('dashboard');
@@ -256,15 +256,16 @@ const App: React.FC = () => {
                     { key: 'user_name', label: 'User' },
                     { key: 'department', label: 'Department' },
                     { key: 'role', label: 'Role' },
-                    { key: 'approval_limit', label: 'Approval Limit', render: (val) => `${Number(val).toLocaleString()}` },
+                    { key: 'approval_limit', label: 'Approval Limit', render: (val) => `Rp ${Number(val).toLocaleString()}` },
                 ]}
                 fields={[
                     { name: 'user_name', label: 'User Name', type: 'text', required: true },
                     { name: 'department', label: 'Department', type: 'select', options: ['IT', 'HR', 'GA', 'Finance', 'Ops'] },
                     { name: 'role', label: 'Asset Role', type: 'select', options: ['Admin', 'Viewer', 'Approver', 'Operator'] },
-                    { name: 'approval_limit', label: 'Approval Limit ($)', type: 'number' },
+                    { name: 'approval_limit', label: 'Approval Limit (Rp)', type: 'number' },
                     { name: 'menu_access', label: 'Menu Access', type: 'text' }
                 ]}
+                apiService={assetRoleAPI}
             />
         );
 

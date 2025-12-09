@@ -170,6 +170,18 @@ type Sparepart struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
+// Asset Role
+type AssetRole struct {
+	ID            int       `json:"id"`
+	UserName      string    `json:"user_name"`
+	Department    string    `json:"department"`
+	Role          string    `json:"role"`
+	ApprovalLimit float64   `json:"approval_limit"`
+	MenuAccess    string    `json:"menu_access"`
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
+}
+
 func init() {
 	connStr := os.Getenv("DATABASE_URL")
 	if connStr == "" {
@@ -263,6 +275,12 @@ func main() {
 	router.HandleFunc("/api/spareparts", createSparepart).Methods("POST")
 	router.HandleFunc("/api/spareparts/{id}", updateSparepart).Methods("PUT")
 	router.HandleFunc("/api/spareparts/{id}", deleteSparepart).Methods("DELETE")
+
+	// Asset Roles
+	router.HandleFunc("/api/asset-roles", getAssetRoles).Methods("GET")
+	router.HandleFunc("/api/asset-roles", createAssetRole).Methods("POST")
+	router.HandleFunc("/api/asset-roles/{id}", updateAssetRole).Methods("PUT")
+	router.HandleFunc("/api/asset-roles/{id}", deleteAssetRole).Methods("DELETE")
 
 	fmt.Println("Server running on http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", router))
@@ -1084,6 +1102,79 @@ func updateSparepart(w http.ResponseWriter, r *http.Request) {
 func deleteSparepart(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
 	_, err := db.Exec("DELETE FROM spareparts WHERE id=$1", id)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	respondSuccess(w, map[string]string{"message": "Deleted successfully"})
+}
+
+// Asset Roles Handlers
+func getAssetRoles(w http.ResponseWriter, r *http.Request) {
+	rows, err := db.Query("SELECT id, user_name, department, role, approval_limit, menu_access, created_at, updated_at FROM asset_roles")
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer rows.Close()
+
+	var roles []AssetRole
+	for rows.Next() {
+		var role AssetRole
+		if err := rows.Scan(&role.ID, &role.UserName, &role.Department, &role.Role, &role.ApprovalLimit, &role.MenuAccess, &role.CreatedAt, &role.UpdatedAt); err != nil {
+			respondError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		roles = append(roles, role)
+	}
+
+	respondSuccess(w, roles)
+}
+
+func createAssetRole(w http.ResponseWriter, r *http.Request) {
+	var role AssetRole
+	if err := json.NewDecoder(r.Body).Decode(&role); err != nil {
+		respondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	err := db.QueryRow(
+		"INSERT INTO asset_roles (user_name, department, role, approval_limit, menu_access) VALUES ($1, $2, $3, $4, $5) RETURNING id, created_at, updated_at",
+		role.UserName, role.Department, role.Role, role.ApprovalLimit, role.MenuAccess,
+	).Scan(&role.ID, &role.CreatedAt, &role.UpdatedAt)
+
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondSuccess(w, role)
+}
+
+func updateAssetRole(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+	var role AssetRole
+	if err := json.NewDecoder(r.Body).Decode(&role); err != nil {
+		respondError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	_, err := db.Exec(
+		"UPDATE asset_roles SET user_name=$1, department=$2, role=$3, approval_limit=$4, menu_access=$5, updated_at=CURRENT_TIMESTAMP WHERE id=$6",
+		role.UserName, role.Department, role.Role, role.ApprovalLimit, role.MenuAccess, id,
+	)
+
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondSuccess(w, map[string]string{"message": "Updated successfully"})
+}
+
+func deleteAssetRole(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+	_, err := db.Exec("DELETE FROM asset_roles WHERE id=$1", id)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, err.Error())
 		return
