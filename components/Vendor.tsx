@@ -1,17 +1,30 @@
 
-import React, { useState } from 'react';
-import { Star, Phone, Mail, MapPin, Search, Plus, MoreHorizontal, Edit2, Trash2, X, Filter, Download, User } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Star, Phone, Mail, MapPin, Search, Plus, MoreHorizontal, Edit2, Trash2, X, Filter, Download, User, Loader2 } from 'lucide-react';
 import { Vendor } from '../types';
-
-const initialVendors: Vendor[] = [
-  { id: 'V1', name: 'CleanMaster Pro', serviceType: 'Cleaning', contactPerson: 'Alice Cooper', phone: '+62 812-3456-7890', email: 'alice@cleanmaster.com', address: 'Jl. Sudirman No. 45, Jakarta', rating: 4.8, status: 'Active' },
-  { id: 'V2', name: 'Guardian Security', serviceType: 'Security', contactPerson: 'Bob Shield', phone: '+62 811-9876-5432', email: 'contact@guardiansec.com', address: 'Jl. Gatot Subroto Kav 12, Jakarta', rating: 4.5, status: 'Active' },
-  { id: 'V3', name: 'TechSolutions Inc', serviceType: 'IT Support', contactPerson: 'Charlie Root', phone: '+62 813-5555-1212', email: 'support@techsol.com', address: 'Ruko Mangga Dua Blok A1', rating: 3.9, status: 'Inactive' },
-];
+import { vendorService } from '../services/supabaseService';
 
 const VendorPage: React.FC = () => {
-  const [vendors, setVendors] = useState<Vendor[]>(initialVendors);
+  const [vendors, setVendors] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadVendors();
+  }, []);
+
+  const loadVendors = async () => {
+    setLoading(true);
+    try {
+      const data = await vendorService.getAll();
+      setVendors(data);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
   
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);

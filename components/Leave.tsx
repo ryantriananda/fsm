@@ -1,18 +1,47 @@
 
-import React, { useState } from 'react';
-import { Calendar, CheckCircle, XCircle, Clock, Plus, Filter } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Calendar, CheckCircle, XCircle, Clock, Plus, Filter, Loader2 } from 'lucide-react';
 import { LeaveRequest } from '../types';
-
-const mockLeaves: LeaveRequest[] = [
-  { id: 'L001', employeeName: 'John Doe', type: 'Annual', startDate: '2023-11-10', endDate: '2023-11-12', days: 3, reason: 'Family vacation', status: 'Approved' },
-  { id: 'L002', employeeName: 'Sarah Jenkins', type: 'Sick', startDate: '2023-10-30', endDate: '2023-10-31', days: 2, reason: 'Flu', status: 'Approved' },
-  { id: 'L003', employeeName: 'Mike Ross', type: 'Annual', startDate: '2023-12-24', endDate: '2023-12-31', days: 6, reason: 'Christmas Holiday', status: 'Pending' },
-  { id: 'L004', employeeName: 'You (Admin)', type: 'Annual', startDate: '2024-01-05', endDate: '2024-01-06', days: 2, reason: 'Personal matters', status: 'Pending' },
-];
+import { leaveService } from '../services/supabaseService';
 
 const LeavePage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'my-leaves' | 'approvals'>('approvals');
-  const [leaves, setLeaves] = useState<LeaveRequest[]>(mockLeaves);
+  const [leaves, setLeaves] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadLeaves();
+  }, []);
+
+  const loadLeaves = async () => {
+    setLoading(true);
+    try {
+      const data = await leaveService.getAll();
+      setLeaves(data);
+    } catch (err) {
+      console.error('Error loading leaves:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApprove = async (id: number) => {
+    try {
+      await leaveService.approve(id, 'Admin');
+      loadLeaves();
+    } catch (err) {
+      console.error('Error approving leave:', err);
+    }
+  };
+
+  const handleReject = async (id: number) => {
+    try {
+      await leaveService.reject(id, 'Admin');
+      loadLeaves();
+    } catch (err) {
+      console.error('Error rejecting leave:', err);
+    }
+  };
 
   // Simulating "My Leaves" vs "Approvals" view
   // For demo: My Leaves shows requests where Name = 'You (Admin)', Approvals shows others

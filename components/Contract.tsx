@@ -1,18 +1,29 @@
 
-import React, { useState } from 'react';
-import { FileText, AlertCircle, CheckCircle, Search, Filter, Download, Plus } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { FileText, AlertCircle, CheckCircle, Search, Filter, Download, Plus, Loader2 } from 'lucide-react';
 import { Contract } from '../types';
-
-const initialContracts: Contract[] = [
-  { id: 'C001', title: 'Software Engineer Agreement', partyName: 'John Doe', type: 'PKWT', startDate: '2023-01-01', endDate: '2024-01-01', status: 'Expiring Soon', value: 12000 },
-  { id: 'C002', title: 'Security Services', partyName: 'SecureCorp Ltd', type: 'Vendor', startDate: '2022-06-01', endDate: '2025-06-01', status: 'Active', value: 50000 },
-  { id: 'C003', title: 'Marketing Consultant', partyName: 'Jane Smith', type: 'PKWT', startDate: '2023-03-15', endDate: '2023-09-15', status: 'Expired', value: 8000 },
-  { id: 'C004', title: 'Senior Manager', partyName: 'Robert Stark', type: 'PKWTT', startDate: '2020-01-01', endDate: '-', status: 'Active', value: 0 },
-];
+import { contractService } from '../services/supabaseService';
 
 const ContractComponent: React.FC = () => {
-  const [contracts] = useState<Contract[]>(initialContracts);
+  const [contracts, setContracts] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadContracts();
+  }, []);
+
+  const loadContracts = async () => {
+    setLoading(true);
+    try {
+      const data = await contractService.getAllWithRelations();
+      setContracts(data);
+    } catch (err) {
+      console.error('Error loading contracts:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {

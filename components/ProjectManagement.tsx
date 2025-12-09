@@ -1,15 +1,28 @@
 
-import React from 'react';
-import { BarChart2, Users, Calendar, ArrowUpRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { BarChart2, Users, Calendar, ArrowUpRight, Loader2 } from 'lucide-react';
 import { Project } from '../types';
-
-const mockProjects: Project[] = [
-  { id: 'P1', name: 'Office Expansion', manager: 'David Kim', progress: 75, status: 'In Progress', deadline: '2023-12-01', teamSize: 12 },
-  { id: 'P2', name: 'Q4 Recruitment', manager: 'Sarah J', progress: 30, status: 'On Hold', deadline: '2024-01-15', teamSize: 4 },
-  { id: 'P3', name: 'IT Infrastructure Upgrade', manager: 'Alex T', progress: 100, status: 'Completed', deadline: '2023-10-15', teamSize: 8 },
-];
+import { projectService } from '../services/supabaseService';
 
 const ProjectManagement: React.FC = () => {
+  const [projects, setProjects] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadProjects();
+  }, []);
+
+  const loadProjects = async () => {
+    setLoading(true);
+    try {
+      const data = await projectService.getAll();
+      setProjects(data);
+    } catch (err) {
+      console.error('Error loading projects:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <div className="p-8">
       <div className="flex justify-between items-center mb-8">

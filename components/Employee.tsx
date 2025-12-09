@@ -1,18 +1,29 @@
 
-import React, { useState } from 'react';
-import { Users, Search, Plus, MoreHorizontal, Briefcase, Mail, X, Edit2, Trash2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Users, Search, Plus, MoreHorizontal, Briefcase, Mail, X, Edit2, Trash2, Loader2 } from 'lucide-react';
 import { Employee } from '../types';
-
-const initialEmployees: Employee[] = [
-  { id: 'E001', nik: '2021001', name: 'John Doe', department: 'IT', position: 'Senior Developer', joinDate: '2021-03-15', status: 'Active', email: 'john.doe@modena.com' },
-  { id: 'E002', nik: '2022045', name: 'Sarah Jenkins', department: 'Marketing', position: 'Brand Manager', joinDate: '2022-06-01', status: 'Active', email: 'sarah.j@modena.com' },
-  { id: 'E003', nik: '2023012', name: 'Mike Ross', department: 'Legal', position: 'Legal Counsel', joinDate: '2023-01-10', status: 'On Leave', email: 'mike.ross@modena.com' },
-  { id: 'E004', nik: '2020088', name: 'Jessica Pearson', department: 'Management', position: 'Director', joinDate: '2020-08-20', status: 'Active', email: 'jessica.p@modena.com' },
-];
+import { employeeService } from '../services/supabaseService';
 
 const EmployeePage: React.FC = () => {
-  const [employees, setEmployees] = useState<Employee[]>(initialEmployees);
+  const [employees, setEmployees] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadEmployees();
+  }, []);
+
+  const loadEmployees = async () => {
+    setLoading(true);
+    try {
+      const data = await employeeService.getAll();
+      setEmployees(data);
+    } catch (err) {
+      console.error('Error loading employees:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
   
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);

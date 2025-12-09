@@ -1,49 +1,38 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Edit2, Trash2, X, Filter, Download, Loader2, AlertCircle } from 'lucide-react';
 import { Asset } from '../types';
-import { supabase } from '../services/supabaseClient';
-
-const initialAssets: Asset[] = [
-  { id: '1', assetCode: 'AST-001', name: 'MacBook Pro M2', category: 'Electronics', serialNumber: 'MBP2023-001', purchaseDate: '2023-01-15', price: 2500, status: 'Active', location: 'HQ - Design Team' },
-  { id: '2', assetCode: 'AST-002', name: 'Herman Miller Aeron', category: 'Furniture', serialNumber: 'HMA-9921', purchaseDate: '2022-11-20', price: 1200, status: 'Active', location: 'HQ - CEO Office' },
-];
+import { assetService } from '../services/supabaseService';
 
 const MasterAsset: React.FC = () => {
-  const [assets, setAssets] = useState<Asset[]>(initialAssets);
+  const [assets, setAssets] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
+  const [editingAsset, setEditingAsset] = useState<any | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   // Form State
-  const [formData, setFormData] = useState<Partial<Asset>>({
-    assetCode: '',
+  const [formData, setFormData] = useState<any>({
+    code: '',
     name: '',
-    category: 'Electronics',
-    serialNumber: '',
-    purchaseDate: '',
-    price: 0,
-    status: 'Active',
-    location: ''
+    category_id: null,
+    serial_number: '',
+    purchase_date: '',
+    acquisition_cost: 0,
+    status_id: 1,
+    location_id: null
   });
 
   const fetchAssets = async () => {
     setLoading(true);
     setError(null);
     try {
-      const { data, error } = await supabase
-        .from('assets')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      if (data) setAssets(data);
+      const data = await assetService.getAllWithRelations();
+      setAssets(data);
     } catch (err: any) {
       console.error('Error fetching assets:', err);
-      // Fallback to mock data if table doesn't exist yet
-      setError("Using local mock data. Please create 'assets' table in Supabase.");
+      setError(err.message || 'Failed to load assets');
     } finally {
       setLoading(false);
     }

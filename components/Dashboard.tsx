@@ -11,8 +11,10 @@ import {
   Calendar,
   Clock,
   ArrowRight,
-  MoreHorizontal
+  MoreHorizontal,
+  RefreshCw
 } from 'lucide-react';
+import { dashboardService, assetService, assetCategoryService, assetLocationService, vendorService, contractService } from '../services/supabaseService';
 
 const Dashboard: React.FC = () => {
   const [stats, setStats] = useState({
@@ -21,32 +23,47 @@ const Dashboard: React.FC = () => {
     categories: 0,
     vendors: 0,
     contracts: 0,
+    pendingMaintenance: 0,
+    lowStockATK: 0,
+    activeProjects: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadDashboardData();
   }, []);
 
   const loadDashboardData = async () => {
+    setLoading(true);
+    setError(null);
     try {
-      const [assets, categories, locations, vendors, contracts] = await Promise.all([
-        fetch('http://localhost:8080/api/assets').then(r => r.json()).catch(() => ({ data: [] })),
-        fetch('http://localhost:8080/api/asset-categories').then(r => r.json()).catch(() => ({ data: [] })),
-        fetch('http://localhost:8080/api/asset-locations').then(r => r.json()).catch(() => ({ data: [] })),
-        fetch('http://localhost:8080/api/vendors').then(r => r.json()).catch(() => ({ data: [] })),
-        fetch('http://localhost:8080/api/contracts').then(r => r.json()).catch(() => ({ data: [] }))
+      const [assets, categories, locations, vendors, contracts, dashStats] = await Promise.all([
+        assetService.getAll().catch(() => []),
+        assetCategoryService.getAll().catch(() => []),
+        assetLocationService.getAll().catch(() => []),
+        vendorService.getAll().catch(() => []),
+        contractService.getAll().catch(() => []),
+        dashboardService.getStats().catch(() => ({
+          pendingMaintenance: 0,
+          lowStockATK: 0,
+          activeProjects: 0
+        }))
       ]);
 
       setStats({
-        totalAssets: assets.data?.length || 0,
-        locations: locations.data?.length || 0,
-        categories: categories.data?.length || 0,
-        vendors: vendors.data?.length || 0,
-        contracts: contracts.data?.length || 0,
+        totalAssets: assets.length || 0,
+        locations: locations.length || 0,
+        categories: categories.length || 0,
+        vendors: vendors.length || 0,
+        contracts: contracts.length || 0,
+        pendingMaintenance: (dashStats as any).pendingMaintenance || 0,
+        lowStockATK: (dashStats as any).lowStockATK || 0,
+        activeProjects: (dashStats as any).activeProjects || 0,
       });
-    } catch (error) {
-      console.error('Error loading dashboard data:', error);
+    } catch (err: any) {
+      console.error('Error loading dashboard data:', err);
+      setError(err.message || 'Failed to load data');
     }
     setLoading(false);
   };

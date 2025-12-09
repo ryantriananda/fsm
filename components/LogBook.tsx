@@ -1,16 +1,28 @@
 
-import React from 'react';
-import { ClipboardList, AlertTriangle, Wrench, CheckCircle, Search } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ClipboardList, AlertTriangle, Wrench, CheckCircle, Search, Loader2 } from 'lucide-react';
 import { LogEntry } from '../types';
-
-const mockLogs: LogEntry[] = [
-  { id: 'L1', date: '2023-10-27 10:30', assetName: 'Server Rack A', activity: 'Maintenance', user: 'Admin', notes: 'Routine dust cleaning', severity: 'Normal' },
-  { id: 'L2', date: '2023-10-26 14:15', assetName: 'Projector R01', activity: 'Incident', user: 'John Doe', notes: 'Bulb burned out during meeting', severity: 'Medium' },
-  { id: 'L3', date: '2023-10-25 09:00', assetName: 'Elevator 2', activity: 'Inspection', user: 'Technician', notes: 'Monthly safety check passed', severity: 'Normal' },
-  { id: 'L4', date: '2023-10-24 16:45', assetName: 'CEO Laptop', activity: 'Repair', user: 'IT Support', notes: 'Screen replacement requested', severity: 'Critical' },
-];
+import { logBookService } from '../services/supabaseService';
 
 const LogBook: React.FC = () => {
+  const [logs, setLogs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadLogs();
+  }, []);
+
+  const loadLogs = async () => {
+    setLoading(true);
+    try {
+      const data = await logBookService.getAllWithAsset();
+      setLogs(data);
+    } catch (err) {
+      console.error('Error loading logs:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
   const getIcon = (activity: string) => {
     switch (activity) {
         case 'Incident': return <AlertTriangle size={18} className="text-rose-500" />;

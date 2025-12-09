@@ -1,17 +1,28 @@
 
-import React, { useState } from 'react';
-import { Clock, Calendar, CheckCircle, XCircle, Sparkles, MapPin, Plus, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Clock, Calendar, CheckCircle, XCircle, Sparkles, MapPin, Plus, X, Loader2 } from 'lucide-react';
 import { TimesheetEntry } from '../types';
-
-const cleaningMockData: TimesheetEntry[] = [
-  { id: 'C1', employeeName: 'Budi Santoso', date: '2023-10-27', project: 'Lobby & Reception', task: 'Morning Shift - Deep Clean', hours: 8, status: 'Approved' },
-  { id: 'C2', employeeName: 'Siti Aminah', date: '2023-10-27', project: 'Restrooms Lt. 1-3', task: 'Hourly Sanitation Check', hours: 8, status: 'Submitted' },
-  { id: 'C3', employeeName: 'Agus Setiawan', date: '2023-10-27', project: 'Meeting Rooms', task: 'Post-event Cleanup', hours: 4, status: 'Approved' },
-  { id: 'C4', employeeName: 'Rina Wati', date: '2023-10-27', project: 'Pantry & Breakroom', task: 'General Cleaning & Restock', hours: 8, status: 'Submitted' },
-];
+import { timesheetService } from '../services/supabaseService';
 
 const Timesheet: React.FC = () => {
-  const [cleaningLogs, setCleaningLogs] = useState<TimesheetEntry[]>(cleaningMockData);
+  const [cleaningLogs, setCleaningLogs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadTimesheets();
+  }, []);
+
+  const loadTimesheets = async () => {
+    setLoading(true);
+    try {
+      const data = await timesheetService.getAll();
+      setCleaningLogs(data);
+    } catch (err) {
+      console.error('Error loading timesheets:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
   
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);

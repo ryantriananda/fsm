@@ -1,15 +1,28 @@
 
-import React from 'react';
-import { CreditCard as CardIcon, DollarSign, Lock, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { CreditCard as CardIcon, DollarSign, Lock, AlertCircle, Loader2 } from 'lucide-react';
 import { CreditCard } from '../types';
-
-const mockCards: CreditCard[] = [
-  { id: 'CC1', holderName: 'John Doe', bank: 'BCA Corporate', lastFourDigits: '4242', expiryDate: '12/25', limit: 50000, currentBalance: 12450, status: 'Active' },
-  { id: 'CC2', holderName: 'Jane Smith', bank: 'Mandiri Business', lastFourDigits: '8899', expiryDate: '06/24', limit: 20000, currentBalance: 500, status: 'Active' },
-  { id: 'CC3', holderName: 'Ops Department', bank: 'BCA Corporate', lastFourDigits: '1122', expiryDate: '10/23', limit: 10000, currentBalance: 0, status: 'Blocked' },
-];
+import { creditCardService } from '../services/supabaseService';
 
 const CreditCardPage: React.FC = () => {
+  const [cards, setCards] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadCards();
+  }, []);
+
+  const loadCards = async () => {
+    setLoading(true);
+    try {
+      const data = await creditCardService.getAll();
+      setCards(data);
+    } catch (err) {
+      console.error('Error loading cards:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <div className="p-8">
        <div className="flex justify-between items-center mb-8">

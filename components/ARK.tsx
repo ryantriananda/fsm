@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   LayoutGrid, 
   MapPin, 
@@ -13,9 +13,11 @@ import {
   Monitor,
   Armchair,
   Wifi,
-  MoreVertical
+  MoreVertical,
+  Loader2
 } from 'lucide-react';
 import { Room, RoomAsset } from '../types';
+import { arkService, assetLocationService } from '../services/supabaseService';
 
 // Mock Data
 const initialRooms: Room[] = [
