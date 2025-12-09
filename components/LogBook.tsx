@@ -52,8 +52,13 @@ const LogBook: React.FC = () => {
         </div>
       </div>
 
+      {loading ? (
+        <div className="flex justify-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+        </div>
+      ) : (
       <div className="relative border-l-2 border-gray-200 ml-4 space-y-8">
-        {mockLogs.map((log) => (
+        {logs.map((log) => (
             <div key={log.id} className="relative pl-8">
                 {/* Timeline Dot */}
                 <div className="absolute -left-[9px] top-0 bg-white border-2 border-gray-300 rounded-full p-1">
@@ -82,6 +87,7 @@ const LogBook: React.FC = () => {
             </div>
         ))}
       </div>
+      )}
     </div>
   );
 };

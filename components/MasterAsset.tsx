@@ -68,16 +68,14 @@ const MasterAsset: React.FC = () => {
     setEditingAsset(null);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this asset?')) {
         try {
-            const { error } = await supabase.from('assets').delete().eq('id', id);
-            if (error) throw error;
-            setAssets(assets.filter(a => a.id !== id));
+            await assetService.delete(id);
+            fetchAssets();
         } catch (err: any) {
             console.error('Delete failed', err);
-            // Fallback for local
-            setAssets(assets.filter(a => a.id !== id));
+            alert('Error: ' + err.message);
         }
     }
   };
@@ -100,34 +98,15 @@ const MasterAsset: React.FC = () => {
 
     try {
         if (editingAsset) {
-            // Update
-            const { data, error } = await supabase
-                .from('assets')
-                .update(formData)
-                .eq('id', editingAsset.id)
-                .select();
-            
-            if (error) throw error;
-            if (data) {
-                 setAssets(assets.map(a => a.id === editingAsset.id ? data[0] : a));
-            }
+            await assetService.update(editingAsset.id, formData);
         } else {
-            // Create
-            const { id, ...newAssetData } = formData as any; // Exclude ID
-            const { data, error } = await supabase
-                .from('assets')
-                .insert([newAssetData])
-                .select();
-
-            if (error) throw error;
-             if (data) {
-                 setAssets([data[0], ...assets]);
-            }
+            await assetService.create(formData);
         }
+        fetchAssets();
         handleCloseModal();
     } catch (err: any) {
         console.error('Save failed:', err);
-        // Fallback for demo
+        alert('Error: ' + err.message);
          if (editingAsset) {
             setAssets(assets.map(a => a.id === editingAsset.id ? { ...formData, id: editingAsset.id } as Asset : a));
          } else {
