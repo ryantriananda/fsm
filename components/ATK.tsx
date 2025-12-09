@@ -655,10 +655,12 @@ const ATK: React.FC = () => {
             <form onSubmit={(e) => {
               e.preventDefault();
               const form = e.target as HTMLFormElement;
-              const newItem = {
-                code: (form.elements.namedItem('code') as HTMLInputElement).value,
+              const categoryId = (form.elements.namedItem('category') as HTMLSelectElement).value;
+              const newItem: any = {
+                // Code akan di-generate otomatis jika kosong
+                code: (form.elements.namedItem('code') as HTMLInputElement).value || '',
                 name: (form.elements.namedItem('name') as HTMLInputElement).value,
-                category_id: parseInt((form.elements.namedItem('category') as HTMLSelectElement).value),
+                category_id: categoryId || undefined,
                 unit: (form.elements.namedItem('unit') as HTMLInputElement).value,
                 unit_price: parseFloat((form.elements.namedItem('price') as HTMLInputElement).value) || 0,
                 stock: parseInt((form.elements.namedItem('stock') as HTMLInputElement).value) || 0,
@@ -674,8 +676,9 @@ const ATK: React.FC = () => {
             }}>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Code *</label>
-                  <input type="text" name="code" required placeholder="ATK-XXX" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900" />
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Code</label>
+                  <input type="text" name="code" placeholder="Auto-generate jika kosong" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 bg-gray-50" />
+                  <p className="text-xs text-gray-500 mt-1">Kosongkan untuk auto-generate berdasarkan kategori</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Category *</label>
