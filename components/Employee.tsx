@@ -1,29 +1,18 @@
 
-import React, { useState, useEffect } from 'react';
-import { Users, Search, Plus, MoreHorizontal, Briefcase, Mail, X, Edit2, Trash2, Loader2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Users, Search, Plus, MoreHorizontal, Briefcase, Mail, X, Edit2, Trash2 } from 'lucide-react';
 import { Employee } from '../types';
-import { employeeService } from '../services/supabaseService';
+
+const initialEmployees: Employee[] = [
+  { id: 'E001', nik: '2021001', full_name: 'John Doe', department: 'IT', position: 'Senior Developer', join_date: '2021-03-15', status: 'Active', email: 'john.doe@modena.com' },
+  { id: 'E002', nik: '2022045', full_name: 'Sarah Jenkins', department: 'Marketing', position: 'Brand Manager', join_date: '2022-06-01', status: 'Active', email: 'sarah.j@modena.com' },
+  { id: 'E003', nik: '2023012', full_name: 'Mike Ross', department: 'Legal', position: 'Legal Counsel', join_date: '2023-01-10', status: 'On Leave', email: 'mike.ross@modena.com' },
+  { id: 'E004', nik: '2020088', full_name: 'Jessica Pearson', department: 'Management', position: 'Director', join_date: '2020-08-20', status: 'Active', email: 'jessica.p@modena.com' },
+];
 
 const EmployeePage: React.FC = () => {
-  const [employees, setEmployees] = useState<any[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>(initialEmployees);
   const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    loadEmployees();
-  }, []);
-
-  const loadEmployees = async () => {
-    setLoading(true);
-    try {
-      const data = await employeeService.getAll();
-      setEmployees(data);
-    } catch (err) {
-      console.error('Error loading employees:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
   
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -32,17 +21,17 @@ const EmployeePage: React.FC = () => {
   // Form State
   const [formData, setFormData] = useState<Partial<Employee>>({
     nik: '',
-    name: '',
+    full_name: '',
     department: 'IT',
     position: '',
-    joinDate: '',
+    join_date: '',
     status: 'Active',
     email: ''
   });
 
   // Filter Logic
   const filteredEmployees = employees.filter(emp => 
-    emp.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    emp.full_name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     emp.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
     emp.nik.includes(searchTerm)
   );
@@ -56,10 +45,10 @@ const EmployeePage: React.FC = () => {
       setEditingId(null);
       setFormData({
         nik: '',
-        name: '',
+        full_name: '',
         department: 'IT',
         position: '',
-        joinDate: new Date().toISOString().split('T')[0],
+        join_date: new Date().toISOString().split('T')[0],
         status: 'Active',
         email: ''
       });
@@ -145,10 +134,10 @@ const EmployeePage: React.FC = () => {
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 font-bold uppercase">
-                        {emp.name.charAt(0)}{emp.name.split(' ')[1]?.charAt(0)}
+                        {emp.full_name.charAt(0)}{emp.full_name.split(' ')[1]?.charAt(0)}
                       </div>
                       <div>
-                        <div className="text-sm font-bold text-gray-900">{emp.name}</div>
+                        <div className="text-sm font-bold text-gray-900">{emp.full_name}</div>
                         <div className="text-xs text-gray-500">NIK: {emp.nik}</div>
                       </div>
                     </div>
@@ -219,8 +208,8 @@ const EmployeePage: React.FC = () => {
                   <input 
                     required
                     type="text" 
-                    value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    value={formData.full_name}
+                    onChange={(e) => setFormData({...formData, full_name: e.target.value})}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent outline-none"
                     placeholder="e.g. John Doe"
                   />
@@ -242,8 +231,8 @@ const EmployeePage: React.FC = () => {
                     <input 
                       required
                       type="date" 
-                      value={formData.joinDate}
-                      onChange={(e) => setFormData({...formData, joinDate: e.target.value})}
+                      value={formData.join_date}
+                      onChange={(e) => setFormData({...formData, join_date: e.target.value})}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 outline-none"
                     />
                   </div>

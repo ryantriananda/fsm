@@ -1,53 +1,24 @@
 
-import React, { useState, useEffect } from 'react';
-import { Calendar, CheckCircle, XCircle, Clock, Plus, Filter, Loader2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Calendar, CheckCircle, XCircle, Clock, Plus, Filter } from 'lucide-react';
 import { LeaveRequest } from '../types';
-import { leaveService } from '../services/supabaseService';
+
+const mockLeaves: LeaveRequest[] = [
+  { id: 'L001', employee_name: 'John Doe', leave_type: 'Annual', start_date: '2023-11-10', end_date: '2023-11-12', days_count: 3, reason: 'Family vacation', status: 'Approved' },
+  { id: 'L002', employee_name: 'Sarah Jenkins', leave_type: 'Sick', start_date: '2023-10-30', end_date: '2023-10-31', days_count: 2, reason: 'Flu', status: 'Approved' },
+  { id: 'L003', employee_name: 'Mike Ross', leave_type: 'Annual', start_date: '2023-12-24', end_date: '2023-12-31', days_count: 6, reason: 'Christmas Holiday', status: 'Pending' },
+  { id: 'L004', employee_name: 'You (Admin)', leave_type: 'Annual', start_date: '2024-01-05', end_date: '2024-01-06', days_count: 2, reason: 'Personal matters', status: 'Pending' },
+];
 
 const LeavePage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'my-leaves' | 'approvals'>('approvals');
-  const [leaves, setLeaves] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    loadLeaves();
-  }, []);
-
-  const loadLeaves = async () => {
-    setLoading(true);
-    try {
-      const data = await leaveService.getAll();
-      setLeaves(data);
-    } catch (err) {
-      console.error('Error loading leaves:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleApprove = async (id: number) => {
-    try {
-      await leaveService.approve(id, 'Admin');
-      loadLeaves();
-    } catch (err) {
-      console.error('Error approving leave:', err);
-    }
-  };
-
-  const handleReject = async (id: number) => {
-    try {
-      await leaveService.reject(id, 'Admin');
-      loadLeaves();
-    } catch (err) {
-      console.error('Error rejecting leave:', err);
-    }
-  };
+  const [leaves, setLeaves] = useState<LeaveRequest[]>(mockLeaves);
 
   // Simulating "My Leaves" vs "Approvals" view
   // For demo: My Leaves shows requests where Name = 'You (Admin)', Approvals shows others
   const displayLeaves = activeTab === 'my-leaves' 
-    ? leaves.filter(l => l.employeeName === 'You (Admin)') 
-    : leaves.filter(l => l.employeeName !== 'You (Admin)');
+    ? leaves.filter(l => l.employee_name === 'You (Admin)') 
+    : leaves.filter(l => l.employee_name !== 'You (Admin)');
 
   return (
     <div className="p-8">
@@ -69,7 +40,7 @@ const LeavePage: React.FC = () => {
         >
           Manager Approvals
           <span className="bg-rose-100 text-rose-700 text-xs px-2 py-0.5 rounded-full font-bold">
-            {leaves.filter(l => l.status === 'Pending' && l.employeeName !== 'You (Admin)').length}
+            {leaves.filter(l => l.status === 'Pending' && l.employee_name !== 'You (Admin)').length}
           </span>
           {activeTab === 'approvals' && <span className="absolute bottom-0 left-0 w-full h-0.5 bg-gray-900 rounded-t-full"></span>}
         </button>
@@ -98,19 +69,19 @@ const LeavePage: React.FC = () => {
               {displayLeaves.length > 0 ? displayLeaves.map((leave) => (
                 <tr key={leave.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4">
-                    <div className="text-sm font-bold text-gray-900">{leave.employeeName}</div>
+                    <div className="text-sm font-bold text-gray-900">{leave.employee_name}</div>
                     <div className="text-xs text-gray-500">ID: {leave.id}</div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-sm font-medium text-gray-700">{leave.type}</div>
+                    <div className="text-sm font-medium text-gray-700">{leave.leave_type}</div>
                     <div className="text-xs text-gray-500 italic">"{leave.reason}"</div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                         <Calendar size={14} />
-                        {leave.startDate} <span className="text-gray-400">to</span> {leave.endDate}
+                        {leave.start_date} <span className="text-gray-400">to</span> {leave.end_date}
                     </div>
-                    <div className="text-xs font-bold text-indigo-600 mt-1">{leave.days} Days</div>
+                    <div className="text-xs font-bold text-indigo-600 mt-1">{leave.days_count} Days</div>
                   </td>
                   <td className="px-6 py-4">
                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium

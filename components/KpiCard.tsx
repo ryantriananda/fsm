@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { Puzzle, Car, Users, Home, Gauge, Activity } from 'lucide-react';
+import { Puzzle, Car, Users, Home, Gauge, Activity, Box, DollarSign, Wrench, AlertTriangle } from 'lucide-react';
 import { KpiData } from '../types';
 
 interface KpiCardProps {
@@ -13,6 +14,10 @@ const iconMap = {
   home: Home,
   gauge: Gauge,
   chart: Activity,
+  box: Box,
+  dollar: DollarSign,
+  wrench: Wrench,
+  alert: AlertTriangle
 };
 
 // Elegant color palette mapping
@@ -28,7 +33,7 @@ const colorVariants: Record<string, { bg: string; text: string }> = {
 };
 
 const KpiCard: React.FC<KpiCardProps> = ({ data }) => {
-  const IconComponent = iconMap[data.iconName];
+  const IconComponent = iconMap[data.iconName] || Puzzle;
   // specific color or fallback to slate
   const theme = colorVariants[data.color] || colorVariants.slate;
 
@@ -37,6 +42,11 @@ const KpiCard: React.FC<KpiCardProps> = ({ data }) => {
       <div>
         <div className="text-3xl font-bold text-gray-900 mb-1 group-hover:scale-105 transition-transform origin-left">{data.value}</div>
         <div className="text-sm font-medium text-gray-500">{data.title}</div>
+        {data.trend && (
+            <div className="text-xs text-emerald-600 font-medium mt-2 flex items-center gap-1">
+                {data.trend}
+            </div>
+        )}
       </div>
       <div className={`p-4 rounded-2xl ${theme.bg} transition-colors`}>
         <IconComponent size={28} className={theme.text} />

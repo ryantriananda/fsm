@@ -1,29 +1,18 @@
 
-import React, { useState, useEffect } from 'react';
-import { FileText, AlertCircle, CheckCircle, Search, Filter, Download, Plus, Loader2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { FileText, AlertCircle, CheckCircle, Search, Filter, Download, Plus } from 'lucide-react';
 import { Contract } from '../types';
-import { contractService } from '../services/supabaseService';
 
-const ContractComponent: React.FC = () => {
-  const [contracts, setContracts] = useState<any[]>([]);
+const initialContracts: Contract[] = [
+  { id: 'C001', title: 'Software Engineer Agreement', party_name: 'John Doe', type: 'PKWT', start_date: '2023-01-01', end_date: '2024-01-01', status: 'Expiring Soon', contract_value: 12000 },
+  { id: 'C002', title: 'Security Services', party_name: 'SecureCorp Ltd', type: 'Vendor', start_date: '2022-06-01', end_date: '2025-06-01', status: 'Active', contract_value: 50000 },
+  { id: 'C003', title: 'Marketing Consultant', party_name: 'Jane Smith', type: 'PKWT', start_date: '2023-03-15', end_date: '2023-09-15', status: 'Expired', contract_value: 8000 },
+  { id: 'C004', title: 'Senior Manager', party_name: 'Robert Stark', type: 'PKWTT', start_date: '2020-01-01', end_date: '-', status: 'Active', contract_value: 0 },
+];
+
+const Contract: React.FC = () => {
+  const [contracts] = useState<Contract[]>(initialContracts);
   const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    loadContracts();
-  }, []);
-
-  const loadContracts = async () => {
-    setLoading(true);
-    try {
-      const data = await contractService.getAllWithRelations();
-      setContracts(data);
-    } catch (err) {
-      console.error('Error loading contracts:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -36,7 +25,7 @@ const ContractComponent: React.FC = () => {
 
   const filteredContracts = contracts.filter(c => 
     c.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    c.partyName.toLowerCase().includes(searchTerm.toLowerCase())
+    c.party_name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -94,16 +83,16 @@ const ContractComponent: React.FC = () => {
                     </div>
                     <div>
                       <div className="text-sm font-medium text-gray-900">{contract.title}</div>
-                      <div className="text-xs text-gray-500">{contract.partyName}</div>
+                      <div className="text-xs text-gray-500">{contract.party_name}</div>
                     </div>
                   </div>
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-600">{contract.type}</td>
                 <td className="px-6 py-4 text-sm text-gray-500">
-                  {contract.startDate} <span className="mx-1">→</span> {contract.endDate}
+                  {contract.start_date} <span className="mx-1">→</span> {contract.end_date}
                 </td>
                 <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                  {contract.value ? `$${contract.value.toLocaleString()}` : '-'}
+                  {contract.contract_value ? `$${contract.contract_value.toLocaleString()}` : '-'}
                 </td>
                 <td className="px-6 py-4">
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(contract.status)}`}>
@@ -124,4 +113,4 @@ const ContractComponent: React.FC = () => {
   );
 };
 
-export default ContractComponent;
+export default Contract;

@@ -11,7 +11,8 @@ import {
   Home,
   BookOpen,
   BarChart,
-  Circle
+  Circle,
+  Users
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -21,16 +22,22 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ activeView, onNavigate }) => {
   const [isMasterAssetOpen, setIsMasterAssetOpen] = useState(false);
+  const [isHROpen, setIsHROpen] = useState(false);
 
   // Auto-expand Master Asset if a child is active
   useEffect(() => {
     const masterAssetKeys = [
       'asset-list', 'asset-category', 'asset-location', 'asset-status', 
       'vendor', 'contract', 'asset-value', 'maintenance-schedule', 
-      'maintenance-type', 'sparepart', 'disposal', 'asset-docs', 'asset-role', 'role-permissions'
+      'maintenance-type', 'sparepart', 'disposal', 'asset-docs', 'asset-role'
     ];
     if (masterAssetKeys.includes(activeView)) {
       setIsMasterAssetOpen(true);
+    }
+
+    const hrKeys = ['employees', 'leave-requests', 'departments', 'users'];
+    if (hrKeys.includes(activeView)) {
+      setIsHROpen(true);
     }
   }, [activeView]);
 
@@ -110,10 +117,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, onNavigate }) => {
               <SubNavItem label="Kategori Asset" onClick={() => onNavigate('asset-category')} active={activeView === 'asset-category'} />
               <SubNavItem label="Lokasi Asset" onClick={() => onNavigate('asset-location')} active={activeView === 'asset-location'} />
               <SubNavItem label="Status Asset" onClick={() => onNavigate('asset-status')} active={activeView === 'asset-status'} />
-              
-              {/* Added Vendor sub-menu item */}
               <SubNavItem label="Vendor" onClick={() => onNavigate('vendor')} active={activeView === 'vendor'} />
-              
               <SubNavItem label="Kontrak Asset" onClick={() => onNavigate('contract')} active={activeView === 'contract'} />
               <SubNavItem label="Nilai & Penyusutan" onClick={() => onNavigate('asset-value')} active={activeView === 'asset-value'} />
               <SubNavItem label="Jadwal Maintenance" onClick={() => onNavigate('maintenance-schedule')} active={activeView === 'maintenance-schedule'} />
@@ -122,7 +126,29 @@ const Sidebar: React.FC<SidebarProps> = ({ activeView, onNavigate }) => {
               <SubNavItem label="Disposal & Mutasi" onClick={() => onNavigate('disposal')} active={activeView === 'disposal'} />
               <SubNavItem label="Dokumen Asset" onClick={() => onNavigate('asset-docs')} active={activeView === 'asset-docs'} />
               <SubNavItem label="Role & PIC" onClick={() => onNavigate('asset-role')} active={activeView === 'asset-role'} />
-              <SubNavItem label="Role Permissions" onClick={() => onNavigate('role-permissions')} active={activeView === 'role-permissions'} />
+            </div>
+          )}
+        </div>
+
+        {/* HR & Admin Accordion */}
+        <div className="pb-2">
+          <div 
+            onClick={() => setIsHROpen(!isHROpen)}
+            className={`flex items-center justify-between px-3 py-2.5 rounded-md cursor-pointer transition-all duration-200 border-l-4 border-transparent text-gray-400 hover:bg-gray-800 hover:text-white group`}
+          >
+            <div className="flex items-center gap-3">
+              <Users size={18} className="group-hover:text-white transition-colors"/>
+              <span className="text-sm font-medium">HR & Admin</span>
+            </div>
+            {isHROpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+          </div>
+          
+          {isHROpen && (
+            <div className="mt-1 space-y-0.5 bg-gray-900/50 rounded-lg py-1">
+              <SubNavItem label="Employees" onClick={() => onNavigate('employees')} active={activeView === 'employees'} />
+              <SubNavItem label="Leave Requests" onClick={() => onNavigate('leave-requests')} active={activeView === 'leave-requests'} />
+              <SubNavItem label="Departments" onClick={() => onNavigate('departments')} active={activeView === 'departments'} />
+              <SubNavItem label="Users Management" onClick={() => onNavigate('users')} active={activeView === 'users'} />
             </div>
           )}
         </div>

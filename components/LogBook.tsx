@@ -1,28 +1,16 @@
 
-import React, { useState, useEffect } from 'react';
-import { ClipboardList, AlertTriangle, Wrench, CheckCircle, Search, Loader2 } from 'lucide-react';
+import React from 'react';
+import { ClipboardList, AlertTriangle, Wrench, CheckCircle, Search } from 'lucide-react';
 import { LogEntry } from '../types';
-import { logBookService } from '../services/supabaseService';
+
+const mockLogs: LogEntry[] = [
+  { id: 'L1', date_time: '2023-10-27 10:30', asset_name: 'Server Rack A', activity_type: 'Maintenance', user_name: 'Admin', description: 'Routine dust cleaning', severity: 'Normal' },
+  { id: 'L2', date_time: '2023-10-26 14:15', asset_name: 'Projector R01', activity_type: 'Incident', user_name: 'John Doe', description: 'Bulb burned out during meeting', severity: 'Medium' },
+  { id: 'L3', date_time: '2023-10-25 09:00', asset_name: 'Elevator 2', activity_type: 'Inspection', user_name: 'Technician', description: 'Monthly safety check passed', severity: 'Normal' },
+  { id: 'L4', date_time: '2023-10-24 16:45', asset_name: 'CEO Laptop', activity_type: 'Repair', user_name: 'IT Support', description: 'Screen replacement requested', severity: 'Critical' },
+];
 
 const LogBook: React.FC = () => {
-  const [logs, setLogs] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    loadLogs();
-  }, []);
-
-  const loadLogs = async () => {
-    setLoading(true);
-    try {
-      const data = await logBookService.getAllWithAsset();
-      setLogs(data);
-    } catch (err) {
-      console.error('Error loading logs:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
   const getIcon = (activity: string) => {
     switch (activity) {
         case 'Incident': return <AlertTriangle size={18} className="text-rose-500" />;
@@ -52,13 +40,8 @@ const LogBook: React.FC = () => {
         </div>
       </div>
 
-      {loading ? (
-        <div className="flex justify-center py-12">
-          <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
-        </div>
-      ) : (
       <div className="relative border-l-2 border-gray-200 ml-4 space-y-8">
-        {logs.map((log) => (
+        {mockLogs.map((log) => (
             <div key={log.id} className="relative pl-8">
                 {/* Timeline Dot */}
                 <div className="absolute -left-[9px] top-0 bg-white border-2 border-gray-300 rounded-full p-1">
@@ -69,11 +52,11 @@ const LogBook: React.FC = () => {
                     <div className="flex justify-between items-start mb-2">
                         <div className="flex items-center gap-3">
                             <div className="p-2 bg-gray-50 rounded-lg border border-gray-100">
-                                {getIcon(log.activity)}
+                                {getIcon(log.activity_type)}
                             </div>
                             <div>
-                                <h4 className="font-bold text-gray-900">{log.assetName}</h4>
-                                <span className="text-xs text-gray-500 font-mono">{log.date} • {log.user}</span>
+                                <h4 className="font-bold text-gray-900">{log.asset_name}</h4>
+                                <span className="text-xs text-gray-500 font-mono">{log.date_time} • {log.user_name}</span>
                             </div>
                         </div>
                         <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-full ${getSeverityBadge(log.severity)}`}>
@@ -81,13 +64,12 @@ const LogBook: React.FC = () => {
                         </span>
                     </div>
                     <p className="text-sm text-gray-600 pl-[52px]">
-                        <span className="font-medium text-gray-800">{log.activity}:</span> {log.notes}
+                        <span className="font-medium text-gray-800">{log.activity_type}:</span> {log.description}
                     </p>
                 </div>
             </div>
         ))}
       </div>
-      )}
     </div>
   );
 };

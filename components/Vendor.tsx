@@ -1,30 +1,17 @@
 
-import React, { useState, useEffect } from 'react';
-import { Star, Phone, Mail, MapPin, Search, Plus, MoreHorizontal, Edit2, Trash2, X, Filter, Download, User, Loader2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Star, Phone, Mail, MapPin, Search, Plus, Edit2, Trash2, X, Filter, Download, User } from 'lucide-react';
 import { Vendor } from '../types';
-import { vendorService } from '../services/supabaseService';
+
+const initialVendors: Vendor[] = [
+  { id: 'V1', name: 'CleanMaster Pro', service_type: 'Cleaning', contact_person: 'Alice Cooper', phone: '+62 812-3456-7890', email: 'alice@cleanmaster.com', address: 'Jl. Sudirman No. 45, Jakarta', rating: 4.8, status: 'Active' },
+  { id: 'V2', name: 'Guardian Security', service_type: 'Security', contact_person: 'Bob Shield', phone: '+62 811-9876-5432', email: 'contact@guardiansec.com', address: 'Jl. Gatot Subroto Kav 12, Jakarta', rating: 4.5, status: 'Active' },
+  { id: 'V3', name: 'TechSolutions Inc', service_type: 'IT Support', contact_person: 'Charlie Root', phone: '+62 813-5555-1212', email: 'support@techsol.com', address: 'Ruko Mangga Dua Blok A1', rating: 3.9, status: 'Inactive' },
+];
 
 const VendorPage: React.FC = () => {
-  const [vendors, setVendors] = useState<any[]>([]);
+  const [vendors, setVendors] = useState<Vendor[]>(initialVendors);
   const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    loadVendors();
-  }, []);
-
-  const loadVendors = async () => {
-    setLoading(true);
-    try {
-      const data = await vendorService.getAll();
-      setVendors(data);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
   
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -33,8 +20,8 @@ const VendorPage: React.FC = () => {
   // Form State
   const [formData, setFormData] = useState<Partial<Vendor>>({
     name: '',
-    serviceType: 'Supplier',
-    contactPerson: '',
+    service_type: 'Supplier',
+    contact_person: '',
     phone: '',
     email: '',
     address: '',
@@ -44,8 +31,8 @@ const VendorPage: React.FC = () => {
 
   const filteredVendors = vendors.filter(vendor => 
     vendor.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    vendor.contactPerson.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    vendor.serviceType.toLowerCase().includes(searchTerm.toLowerCase())
+    vendor.contact_person.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    vendor.service_type.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleOpenModal = (vendor?: Vendor) => {
@@ -56,8 +43,8 @@ const VendorPage: React.FC = () => {
       setEditingId(null);
       setFormData({
         name: '',
-        serviceType: 'Supplier',
-        contactPerson: '',
+        service_type: 'Supplier',
+        contact_person: '',
         phone: '',
         email: '',
         address: '',
@@ -155,15 +142,15 @@ const VendorPage: React.FC = () => {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                    {vendor.serviceType}
+                                    {vendor.service_type}
                                 </span>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="flex items-center gap-2">
                                     <div className="w-6 h-6 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center text-xs font-bold">
-                                        {vendor.contactPerson.charAt(0)}
+                                        {vendor.contact_person.charAt(0)}
                                     </div>
-                                    <span className="text-sm text-gray-700">{vendor.contactPerson}</span>
+                                    <span className="text-sm text-gray-700">{vendor.contact_person}</span>
                                 </div>
                             </td>
                             <td className="px-6 py-4">
@@ -248,8 +235,8 @@ const VendorPage: React.FC = () => {
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Service Type</label>
                     <select 
-                        value={formData.serviceType}
-                        onChange={(e) => setFormData({...formData, serviceType: e.target.value as any})}
+                        value={formData.service_type}
+                        onChange={(e) => setFormData({...formData, service_type: e.target.value as any})}
                         className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 outline-none bg-white"
                     >
                         <option value="Supplier">Supplier</option>
@@ -284,8 +271,8 @@ const VendorPage: React.FC = () => {
                         <input 
                             required
                             type="text" 
-                            value={formData.contactPerson}
-                            onChange={(e) => setFormData({...formData, contactPerson: e.target.value})}
+                            value={formData.contact_person}
+                            onChange={(e) => setFormData({...formData, contact_person: e.target.value})}
                             className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 outline-none"
                             placeholder="e.g. John Smith"
                         />

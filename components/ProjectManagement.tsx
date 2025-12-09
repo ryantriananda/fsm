@@ -1,28 +1,15 @@
 
-import React, { useState, useEffect } from 'react';
-import { BarChart2, Users, Calendar, ArrowUpRight, Loader2 } from 'lucide-react';
+import React from 'react';
+import { BarChart2, Users, Calendar, ArrowUpRight } from 'lucide-react';
 import { Project } from '../types';
-import { projectService } from '../services/supabaseService';
+
+const mockProjects: Project[] = [
+  { id: 'P1', name: 'Office Expansion', manager_name: 'David Kim', progress_pct: 75, status: 'In Progress', deadline: '2023-12-01', team_size: 12 },
+  { id: 'P2', name: 'Q4 Recruitment', manager_name: 'Sarah J', progress_pct: 30, status: 'On Hold', deadline: '2024-01-15', team_size: 4 },
+  { id: 'P3', name: 'IT Infrastructure Upgrade', manager_name: 'Alex T', progress_pct: 100, status: 'Completed', deadline: '2023-10-15', team_size: 8 },
+];
 
 const ProjectManagement: React.FC = () => {
-  const [projects, setProjects] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    loadProjects();
-  }, []);
-
-  const loadProjects = async () => {
-    setLoading(true);
-    try {
-      const data = await projectService.getAll();
-      setProjects(data);
-    } catch (err) {
-      console.error('Error loading projects:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
   return (
     <div className="p-8">
       <div className="flex justify-between items-center mb-8">
@@ -49,24 +36,24 @@ const ProjectManagement: React.FC = () => {
                         <button className="text-gray-400 hover:text-gray-900"><ArrowUpRight size={20}/></button>
                     </div>
                     <h3 className="text-lg font-bold text-gray-900 mb-1">{project.name}</h3>
-                    <p className="text-sm text-gray-500">Manager: {project.manager}</p>
+                    <p className="text-sm text-gray-500">Manager: {project.manager_name}</p>
                 </div>
 
                 <div>
                     <div className="flex justify-between items-center text-sm text-gray-600 mb-2">
-                        <span className="flex items-center gap-2"><Users size={16}/> {project.teamSize} Members</span>
+                        <span className="flex items-center gap-2"><Users size={16}/> {project.team_size} Members</span>
                         <span className="flex items-center gap-2"><Calendar size={16}/> {project.deadline}</span>
                     </div>
                     
                     <div className="mt-4">
                         <div className="flex justify-between text-xs font-semibold mb-1">
                             <span>Progress</span>
-                            <span>{project.progress}%</span>
+                            <span>{project.progress_pct}%</span>
                         </div>
                         <div className="w-full bg-gray-100 rounded-full h-2">
                             <div 
-                                className={`h-2 rounded-full transition-all duration-500 ${project.progress === 100 ? 'bg-emerald-500' : 'bg-gray-900'}`} 
-                                style={{ width: `${project.progress}%` }}
+                                className={`h-2 rounded-full transition-all duration-500 ${project.progress_pct === 100 ? 'bg-emerald-500' : 'bg-gray-900'}`} 
+                                style={{ width: `${project.progress_pct}%` }}
                             ></div>
                         </div>
                     </div>

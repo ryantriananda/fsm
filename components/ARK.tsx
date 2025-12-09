@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   LayoutGrid, 
   MapPin, 
@@ -13,11 +13,9 @@ import {
   Monitor,
   Armchair,
   Wifi,
-  MoreVertical,
-  Loader2
+  MoreVertical
 } from 'lucide-react';
 import { Room, RoomAsset } from '../types';
-import { arkService, assetLocationService } from '../services/supabaseService';
 
 // Mock Data
 const initialRooms: Room[] = [
@@ -29,10 +27,10 @@ const initialRooms: Room[] = [
     capacity: 12,
     status: 'Available',
     assets: [
-      { id: 'A1', name: 'Logitech Rally System', category: 'Electronics', condition: 'Good', lastChecked: '2023-10-20' },
-      { id: 'A2', name: 'Herman Miller Table', category: 'Furniture', condition: 'Good', lastChecked: '2023-10-20' },
-      { id: 'A3', name: 'Ergonomic Chairs (12x)', category: 'Furniture', condition: 'Good', lastChecked: '2023-10-20' },
-      { id: 'A4', name: 'Projector Epson 4K', category: 'Electronics', condition: 'Needs Repair', lastChecked: '2023-10-25' },
+      { id: 'A1', name: 'Logitech Rally System', category: 'Electronics', condition: 'Good', last_checked: '2023-10-20' },
+      { id: 'A2', name: 'Herman Miller Table', category: 'Furniture', condition: 'Good', last_checked: '2023-10-20' },
+      { id: 'A3', name: 'Ergonomic Chairs (12x)', category: 'Furniture', condition: 'Good', last_checked: '2023-10-20' },
+      { id: 'A4', name: 'Projector Epson 4K', category: 'Electronics', condition: 'Needs Repair', last_checked: '2023-10-25' },
     ]
   },
   {
@@ -43,9 +41,9 @@ const initialRooms: Room[] = [
     capacity: 2,
     status: 'In Use',
     assets: [
-      { id: 'B1', name: 'Executive Desk', category: 'Furniture', condition: 'Good', lastChecked: '2023-09-15' },
-      { id: 'B2', name: 'Mac Studio Display', category: 'Electronics', condition: 'Good', lastChecked: '2023-09-15' },
-      { id: 'B3', name: 'Leather Sofa', category: 'Furniture', condition: 'Good', lastChecked: '2023-09-15' },
+      { id: 'B1', name: 'Executive Desk', category: 'Furniture', condition: 'Good', last_checked: '2023-09-15' },
+      { id: 'B2', name: 'Mac Studio Display', category: 'Electronics', condition: 'Good', last_checked: '2023-09-15' },
+      { id: 'B3', name: 'Leather Sofa', category: 'Furniture', condition: 'Good', last_checked: '2023-09-15' },
     ]
   },
   {
@@ -56,9 +54,9 @@ const initialRooms: Room[] = [
     capacity: 20,
     status: 'Available',
     assets: [
-      { id: 'C1', name: 'Espresso Machine', category: 'Electronics', condition: 'Broken', lastChecked: '2023-10-26' },
-      { id: 'C2', name: 'High Tables (4x)', category: 'Furniture', condition: 'Good', lastChecked: '2023-10-01' },
-      { id: 'C3', name: 'Microwave Samsung', category: 'Electronics', condition: 'Good', lastChecked: '2023-10-01' },
+      { id: 'C1', name: 'Espresso Machine', category: 'Electronics', condition: 'Broken', last_checked: '2023-10-26' },
+      { id: 'C2', name: 'High Tables (4x)', category: 'Furniture', condition: 'Good', last_checked: '2023-10-01' },
+      { id: 'C3', name: 'Microwave Samsung', category: 'Electronics', condition: 'Good', last_checked: '2023-10-01' },
     ]
   },
   {
@@ -69,8 +67,8 @@ const initialRooms: Room[] = [
     capacity: 0,
     status: 'Maintenance',
     assets: [
-      { id: 'D1', name: 'Rack Server 42U', category: 'Furniture', condition: 'Good', lastChecked: '2023-10-10' },
-      { id: 'D2', name: 'Cooling Unit A', category: 'Electronics', condition: 'Needs Repair', lastChecked: '2023-10-27' },
+      { id: 'D1', name: 'Rack Server 42U', category: 'Furniture', condition: 'Good', last_checked: '2023-10-10' },
+      { id: 'D2', name: 'Cooling Unit A', category: 'Electronics', condition: 'Needs Repair', last_checked: '2023-10-27' },
     ]
   },
 ];
@@ -231,7 +229,7 @@ const ARK: React.FC = () => {
                                     </div>
                                     <div>
                                         <p className="font-semibold text-gray-900">{asset.name}</p>
-                                        <p className="text-xs text-gray-500">ID: {asset.id} • Checked: {asset.lastChecked}</p>
+                                        <p className="text-xs text-gray-500">ID: {asset.id} • Checked: {asset.last_checked}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-4">
